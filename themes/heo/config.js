@@ -106,7 +106,7 @@ const CONFIG = {
       color_1: '#df5b40',
       title_2: 'AutoCAD',
       img_2: '/images/heo/autocad.png',
-      color_2: '#1f1f1f'
+      color_2: '#ffffff'
     }
   ],
 
