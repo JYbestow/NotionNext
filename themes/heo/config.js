@@ -7,9 +7,9 @@ const CONFIG = {
   HEO_SITE_CREATE_TIME: '2024.1.25', // 建站日期，用于计算网站运行的第几天
 
   // 首页顶部通知条滚动内容，如不需要可以留空 []
-  HEO_NOTICE_BAR: [
-    { title: '欢迎来到我的博客', url: 'https://gagasama.vercel.app/' },
-    { title: '访问我的homepage以了解更多信息', url: 'https://jybestow.github.io/' }
+HEO_NOTICE_BAR: [
+    { title: '👋 欢迎来到嘎嘎sama的数字花园', url: 'https://gagasama.vercel.app/' },
+    { title: '🚀 正在探索：嘎大王的homepage', url: 'https://github.com/JYbestow' }
   ],
 
   // 英雄区左右侧组件颠倒位置
