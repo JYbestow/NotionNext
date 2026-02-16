@@ -1,9 +1,11 @@
+// themes/heo/index.js
+
 /**
- *   HEO 主题说明
- *  > 主题设计者 [张洪](https://zhheo.com/)
- *  > 主题开发者 [tangly1024](https://github.com/tangly1024)
- *  1. 开启方式 在blog.config.js 将主题配置为 `HEO`
- *  2. 更多说明参考此[文档](https://docs.tangly1024.com/article/notionnext-heo)
+ * HEO 主题说明
+ * > 主题设计者 [张洪](https://zhheo.com/)
+ * > 主题开发者 [tangly1024](https://github.com/tangly1024)
+ * 1. 开启方式 在blog.config.js 将主题配置为 `HEO`
+ * 2. 更多说明参考此[文档](https://docs.tangly1024.com/article/notionnext-heo)
  */
 
 import Comment from '@/components/Comment'
@@ -95,7 +97,8 @@ const LayoutBase = props => {
   return (
     <div
       id='theme-heo'
-      className={`${siteConfig('FONT_STYLE')} bg-[#f7f9fe] dark:bg-[#18171d] h-full min-h-screen flex flex-col scroll-smooth`}>
+      // 修改背景色，使其稍微干净一点，配合毛玻璃
+      className={`${siteConfig('FONT_STYLE')} bg-[#f5f7fd] dark:bg-[#0e0e11] h-full min-h-screen flex flex-col scroll-smooth`}>
       <Style />
 
       {/* 顶部嵌入 导航栏，首页放hero，文章页放文章详情 */}
@@ -225,7 +228,7 @@ const LayoutArchive = props => {
   // 归档页顶部显示条，如果是默认归档则不显示。分类详情页显示分类列表，标签详情页显示当前标签
 
   return (
-    <div className='p-5 rounded-xl border dark:border-gray-600 max-w-6xl w-full bg-white dark:bg-[#1e1e1e]'>
+    <div className='p-5 rounded-[24px] border border-white/50 dark:border-gray-800 max-w-6xl w-full bg-white/90 dark:bg-[#1e1e1e] backdrop-blur-md shadow-lg'>
       {/* 文章分类条 */}
       <CategoryBar {...props} border={false} />
 
@@ -290,10 +293,12 @@ const LayoutSlug = props => {
       )
     }
   }, [post])
+  
   return (
     <>
       <div
-        className={`article h-full w-full ${fullWidth ? '' : 'xl:max-w-5xl'} ${hasCode ? 'xl:w-[73.15vw]' : ''}  bg-white dark:bg-[#18171d] dark:border-gray-600 lg:hover:shadow lg:border rounded-2xl lg:px-2 lg:py-4 `}>
+        // 核心修改：添加 heo-card 类以继承毛玻璃和圆角效果，使用 bg-white/95 增加透光感
+        className={`article heo-card h-full w-full ${fullWidth ? '' : 'xl:max-w-5xl'} ${hasCode ? 'xl:w-[73.15vw]' : ''} bg-white/95 dark:bg-[#18171d] dark:border-gray-700 lg:border lg:border-white/50 rounded-[24px] lg:px-2 lg:py-4 shadow-sm`}>
         {/* 文章锁 */}
         {lock && <PostLock validPassword={validPassword} />}
 
@@ -333,15 +338,15 @@ const LayoutSlug = props => {
             {/* 评论区 */}
             {fullWidth ? null : (
               <div className={`${commentEnable && post ? '' : 'hidden'}`}>
-                <hr className='my-4 border-dashed' />
+                <hr className='my-4 border-dashed border-gray-200 dark:border-gray-700' />
                 {/* 评论区上方广告 */}
                 <div className='py-2'>
                   <AdSlot />
                 </div>
                 {/* 评论互动 */}
                 <div className='duration-200 overflow-x-auto px-5'>
-                  <div className='text-2xl dark:text-white'>
-                    <i className='fas fa-comment mr-1' />
+                  <div className='text-2xl dark:text-white font-bold mb-4'>
+                    <i className='fas fa-comment mr-2 text-indigo-500' />
                     {locale.COMMON.COMMENTS}
                   </div>
                   <Comment frontMatter={post} className='' />
@@ -382,8 +387,8 @@ const Layout404 = props => {
             leaveFrom='opacity-100 translate-y-0'
             leaveTo='opacity-0 -translate-y-16'
             unmount={false}>
-            {/* 404卡牌 */}
-            <div className='error-content flex flex-col md:flex-row w-full mt-12 h-[30rem] md:h-96 justify-center items-center bg-white dark:bg-[#1B1C20] border dark:border-gray-800 rounded-3xl'>
+            {/* 404卡牌 - 增加阴影和圆角 */}
+            <div className='error-content heo-card flex flex-col md:flex-row w-full mt-12 h-[30rem] md:h-96 justify-center items-center bg-white/90 dark:bg-[#1B1C20] border border-white/50 dark:border-gray-800 rounded-[24px] shadow-xl backdrop-blur-md'>
               {/* 左侧动图 */}
               <LazyImage
                 className='error-img h-60 md:h-full p-4'
@@ -393,12 +398,13 @@ const Layout404 = props => {
 
               {/* 右侧文字 */}
               <div className='error-info flex-1 flex flex-col justify-center items-center space-y-4'>
-                <h1 className='error-title font-extrabold md:text-9xl text-7xl dark:text-white'>
+                <h1 className='error-title font-extrabold md:text-9xl text-7xl text-indigo-500 dark:text-indigo-400'>
                   404
                 </h1>
-                <div className='dark:text-white'>请尝试站内搜索寻找文章</div>
+                <div className='dark:text-white font-medium'>请尝试站内搜索寻找文章</div>
                 <SmartLink href='/'>
-                  <button className='bg-blue-500 py-2 px-4 text-white shadow rounded-lg hover:bg-blue-600 hover:shadow-md duration-200 transition-all'>
+                  {/* 按钮美化：使用品牌色 Indigo */}
+                  <button className='bg-indigo-500 py-3 px-6 text-white shadow-lg shadow-indigo-500/30 rounded-xl hover:bg-indigo-600 hover:scale-105 duration-200 transition-all font-bold'>
                     回到主页
                   </button>
                 </SmartLink>
@@ -441,12 +447,13 @@ const LayoutCategoryIndex = props => {
               passHref
               legacyBehavior>
               <div
+                // 优化分类卡片样式：去除 heavy border，增加 shadow-sm
                 className={
-                  'group mr-5 mb-5 flex flex-nowrap items-center border bg-white text-2xl rounded-xl dark:hover:text-white px-4 cursor-pointer py-3 hover:text-white hover:bg-indigo-600 transition-all hover:scale-110 duration-150'
+                  'group mr-5 mb-5 flex flex-nowrap items-center bg-white dark:bg-[#1e1e1e] text-2xl rounded-2xl shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-800 dark:hover:text-white px-4 cursor-pointer py-3 hover:text-white hover:bg-indigo-600 transition-all hover:-translate-y-1 duration-200'
                 }>
-                <HashTag className={'w-5 h-5 stroke-gray-500 stroke-2'} />
+                <HashTag className={'w-5 h-5 stroke-gray-500 stroke-2 group-hover:stroke-white transition-colors'} />
                 {category.name}
-                <div className='bg-[#f1f3f8] ml-1 px-2 rounded-lg group-hover:text-indigo-600 '>
+                <div className='bg-[#f1f3f8] ml-1 px-2 rounded-lg text-sm text-gray-500 group-hover:bg-white/20 group-hover:text-white transition-colors'>
                   {category.count}
                 </div>
               </div>
@@ -483,12 +490,13 @@ const LayoutTagIndex = props => {
               passHref
               legacyBehavior>
               <div
+                // 优化标签卡片样式：统一圆角和阴影
                 className={
-                  'group flex flex-nowrap items-center border bg-white text-2xl rounded-xl dark:hover:text-white px-4 cursor-pointer py-3 hover:text-white hover:bg-indigo-600 transition-all hover:scale-110 duration-150'
+                  'group flex flex-nowrap items-center bg-white dark:bg-[#1e1e1e] text-2xl rounded-2xl shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-800 dark:hover:text-white px-4 cursor-pointer py-3 hover:text-white hover:bg-indigo-600 transition-all hover:-translate-y-1 duration-200'
                 }>
-                <HashTag className={'w-5 h-5 stroke-gray-500 stroke-2'} />
+                <HashTag className={'w-5 h-5 stroke-gray-500 stroke-2 group-hover:stroke-white transition-colors'} />
                 {tag.name}
-                <div className='bg-[#f1f3f8] ml-1 px-2 rounded-lg group-hover:text-indigo-600 '>
+                <div className='bg-[#f1f3f8] ml-1 px-2 rounded-lg text-sm text-gray-500 group-hover:bg-white/20 group-hover:text-white transition-colors'>
                   {tag.count}
                 </div>
               </div>
