@@ -36,7 +36,7 @@ const CONFIG = {
   ENDSPACE_LOADING_COVER: true, // 是否显示加载动画
   
   // 加载动画显示的站点名称 (右侧竖排大字)
-  ENDSPACE_LOADING_SITE_NAME: 'CLOUD09_SPACE', // 站点名称，显示在加载动画右侧
+  ENDSPACE_LOADING_SITE_NAME: 'GAGASAMA', // 站点名称，显示在加载动画右侧
   
   // 加载进度文字 (不同阶段)
   ENDSPACE_LOADING_TEXT_INIT: 'INITIALIZING', // 初始化阶段显示的文字
@@ -63,17 +63,17 @@ const CONFIG = {
   // 水印文字配置 (Watermark Text)
   // ============================================
   // 首页标题栏背景滚动水印文字（大字循环动画）
-  ENDSPACE_BANNER_WATERMARK_TEXT: 'CLOUD09_SPACE',
+  ENDSPACE_BANNER_WATERMARK_TEXT: 'GAGASAMA',
   // 文章详情页右上角水印文字
-  ENDSPACE_ARTICLE_WATERMARK_TEXT: 'CLOUD09',
+  ENDSPACE_ARTICLE_WATERMARK_TEXT: 'GAGASAMA',
 
   // ============================================
   // 菜单配置 (Menu)
   // ============================================
-  ENDSPACE_MENU_CATEGORY: false, // 显示分类菜单（默认合并到 Archive）
+  ENDSPACE_MENU_CATEGORY: true, // 显示分类菜单（默认合并到 Archive）
   ENDSPACE_MENU_TAG: false, // 显示标签菜单（默认合并到 Archive）
   ENDSPACE_MENU_ARCHIVE: true, // 显示归档菜单
-  ENDSPACE_MENU_SEARCH: false, // 显示搜索菜单（默认合并到 Archive）
+  ENDSPACE_MENU_SEARCH: true, // 显示搜索菜单（默认合并到 Archive）
 
   // ============================================
   // 文章列表 (Post List)
