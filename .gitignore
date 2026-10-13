@@ -74,3 +74,6 @@ webpack-internal:/
 
 # Local Cloudflare Worker route configuration
 /cloudflare/notion-image-proxy/wrangler.toml
+
+# Local AI assistant settings (machine-specific)
+/.claude/
