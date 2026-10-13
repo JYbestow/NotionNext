@@ -1,4 +1,4 @@
-﻿# Cloudflare Pages 部署文档站（VitePress）
+# Cloudflare Pages 部署文档站（VitePress）
 
 本仓库教程通过 **VitePress** 构建为静态站（例如 `notionnext.tangly1024.com`）。
 
@@ -119,15 +119,18 @@ npx wrangler pages deploy .vitepress/dist --project-name=notionnext-docs
 | --- | --- |
 | 构建命令 | `yarn install && yarn docs:site:build` |
 | 输出目录 | `.vitepress/dist` |
-| Node | `20` |
+| 环境变量 `NODE_VERSION` | `22` |
+| 环境变量 `YARN_VERSION` | `1.22.22` |
 
 组织仓库更建议用上文 **Actions** 流程。
+
+若日志出现 `The engine "node" is incompatible ... Expected version ">=22 <25". Got "20.x"`，说明该 Pages 项目没有切到 Node 22；在 Cloudflare Pages 的 **Settings → Environment variables** 添加或修正 `NODE_VERSION=22` 后重新部署即可。
 
 ---
 
 ## 发布范围
 
-见 `.vitepress/config.mts`：`srcExclude: ['developer/**', ...]`，即仅发布 `user-guide/`、`index.md`、`DOCUMENTATION_POLICY.md`。
+见 `.vitepress/config.mts`：在线站发布 `user-guide/`、`developer/`、`community/` 及根目录主要入口页；根目录 README 作为仓库目录说明不进入 VitePress。
 
 ## 文档评论（Giscus，可选）
 

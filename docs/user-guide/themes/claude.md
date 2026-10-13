@@ -1,6 +1,10 @@
-﻿# Claude 主题
+# Claude 主题
 
 > 主题 ID：`claude` · 预览：[preview.tangly1024.com/?theme=claude](https://preview.tangly1024.com/?theme=claude)
+
+## 主题预览
+
+![Claude 主题预览](/images/themes-preview/claude.webp)
 
 ## 简介
 
@@ -10,7 +14,7 @@
 
 - **定位**：类 Claude Docs 的文档与终端氛围。
 - **适用场景**：文档风、GitHub 式首页
-- **配置前缀**：`CLAUDE_*`（共 **17** 项，见下方配置表）
+- **配置前缀**：`CLAUDE_*`（共 **23** 项，见下方配置表）
 - **在线预览**：[preview.tangly1024.com/?theme=claude](https://preview.tangly1024.com/?theme=claude)
 
 ## 适用场景
@@ -23,14 +27,33 @@
 2. 环境变量：`NEXT_PUBLIC_THEME=claude`
 3. `blog.config.js` 的 `THEME`
 
-## 开发者深度文档
+## 进阶实现文档
 
-实现细节、全局改动与架构说明见 [Claude 开发者文档（GitHub）](https://github.com/notionnext-org/NotionNext/blob/main/docs/developer/themes/CLAUDE.md)（docs/developer/themes/，与本文站长向说明分工）。
+实现细节、全局改动与架构说明见 [Claude 实现文档](../../developer/themes/CLAUDE.md)。如果你准备改主题或提交 PR，建议继续阅读。
 
 ## 配置说明
 
 配置文件：[`themes/claude/config.js`](https://github.com/notionnext-org/NotionNext/blob/main/themes/claude/config.js)  
 也可在 **Notion Config** 表中填写同名键（对象/数组用 JSON）。
+
+### Claude 主题调色
+
+Claude 支持通过语义色变量调整强调色、背景、文字和边框：
+
+```js
+CLAUDE_COLOR_ACCENT: '#DA7756',
+CLAUDE_COLOR_ACCENT_HOVER: '#C06042',
+CLAUDE_COLOR_BG: '#ffffff',
+CLAUDE_COLOR_BG_SECONDARY: '#F3F3EE',
+CLAUDE_COLOR_TEXT: '#1A1A1A',
+CLAUDE_COLOR_BORDER: '#E5E5E0'
+```
+
+主题工具中的调色板会展示当前值，并可直接复制配置项到 Notion Config。
+
+### 菜单图标
+
+`4.10.9` 修复了 Claude 主题普通菜单和子菜单图标显示问题。若 Notion 菜单数据中填写了 icon 类名，菜单项会显示自身配置的图标；未配置 icon 的子菜单不会再生成空白图标占位。
 
 <!-- theme-config-table -->
 
@@ -38,6 +61,12 @@
 
 | 配置键 | 说明 |
 | --- | --- |
+| `CLAUDE_COLOR_ACCENT` | 强调色 |
+| `CLAUDE_COLOR_ACCENT_HOVER` | 强调色 hover |
+| `CLAUDE_COLOR_BG` | 页面背景色 |
+| `CLAUDE_COLOR_BG_SECONDARY` | 次级背景色 |
+| `CLAUDE_COLOR_TEXT` | 主文字色 |
+| `CLAUDE_COLOR_BORDER` | 边框色 |
 | `CLAUDE_BLOG_NAME` | 见 config.js |
 | `CLAUDE_BLOG_NAME_EN` | 见 config.js |
 | `CLAUDE_POST_AD_ENABLE` | 见 config.js |

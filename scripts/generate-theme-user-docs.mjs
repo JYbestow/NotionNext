@@ -48,13 +48,15 @@ const scenes = {
   game: '游戏像素风装饰',
   landing: '单页着陆分区',
   starter: '营销落地页区块',
+  opc: '个人主页、一人公司入口、AI 工作流展示',
   proxio: '作品集、SaaS 品牌站',
   commerce: '商品展示页',
   magzine: '杂志封面大图列表',
   claude: '文档风、GitHub 式首页',
   endspace: '工业风加载与侧栏',
   example: '新主题开发骨架',
-  thoughtlite: '时间线首页、Latest 卡片'
+  thoughtlite: '时间线首页、Latest 卡片',
+  xuhome: '高辨识度个人博客、新粗野主义卡片布局'
 }
 
 function extractKeys(configPath) {

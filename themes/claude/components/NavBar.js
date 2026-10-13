@@ -62,9 +62,17 @@ export default function NavBar(props) {
   const author = siteConfig('AUTHOR') || blogName
   const bio = siteConfig('BIO')
   const githubUrl = siteConfig('CONTACT_GITHUB')
+  const orcidUrl = siteConfig('CONTACT_ORCID')
+  const csdnUrl = siteConfig('CONTACT_CSDN')
+  const juejinUrl = siteConfig('CONTACT_JUEJIN')
   const githubLabel = getGithubUsername(githubUrl) || githubUrl?.replace(/^https?:\/\//, '')
+  const orcidLabel = orcidUrl?.replace(/^https?:\/\/orcid\.org\//, '') || orcidUrl?.replace(/^https?:\/\//, '')
+  const csdnLabel = csdnUrl?.replace(/^https?:\/\//, '')
+  const juejinLabel = juejinUrl?.replace(/^https?:\/\//, '')
   const profileEmail = resolveContactEmail(siteConfig('CONTACT_EMAIL'))
-  const hasContact = Boolean(githubUrl || profileEmail)
+  const hasContact = Boolean(
+    githubUrl || orcidUrl || csdnUrl || juejinUrl || profileEmail
+  )
   const terminalMetaRef = useRef(null)
   const terminalShellRef = useRef(null)
   const terminalShellTextRef = useRef(null)
@@ -175,6 +183,24 @@ export default function NavBar(props) {
                 <SmartLink href={githubUrl} className='claude-profile-contact-row'>
                   <i className='fab fa-github claude-profile-contact-icon' />
                   <span className='claude-profile-contact-value'>{githubLabel}</span>
+                </SmartLink>
+              )}
+              {orcidUrl && (
+                <SmartLink href={orcidUrl} className='claude-profile-contact-row'>
+                  <i className='fab fa-orcid claude-profile-contact-icon' />
+                  <span className='claude-profile-contact-value'>{orcidLabel}</span>
+                </SmartLink>
+              )}
+              {csdnUrl && (
+                <SmartLink href={csdnUrl} className='claude-profile-contact-row'>
+                  <i className='fab fa-csdn claude-profile-contact-icon' />
+                  <span className='claude-profile-contact-value'>{csdnLabel}</span>
+                </SmartLink>
+              )}
+              {juejinUrl && (
+                <SmartLink href={juejinUrl} className='claude-profile-contact-row'>
+                  <i className='fab fa-juejin claude-profile-contact-icon' />
+                  <span className='claude-profile-contact-value'>{juejinLabel}</span>
                 </SmartLink>
               )}
               {profileEmail && (

@@ -409,7 +409,7 @@ create index if not exists idx_claude_contrib_snapshots_updated
    - 优先 GitHub API
    - 失败则本地 fallback
 4. 前端 `ProfileHome` 直接渲染：
-   - `<div className="markdown-body" dangerouslySetInnerHTML={{ __html: readmeHtml }} />`
+   - `<div className="markdown-body" dangerouslySetInnerHTML=&#123;&#123; __html: readmeHtml &#125;&#125; />`
 
 样式来源：
 
@@ -589,7 +589,8 @@ curl "http://localhost:3000/api/claude/contribution-refresh?token=<token>&revali
 
 #### 第一层：`pages/_app.js` — 从根源消除 Layout 组件 remount
 
-> **⚠️ 合并注意：此修改位于全局 `pages/_app.js`，非 claude 主题目录内。合并时请特别关注此文件。**
+::: warning 合并注意：此修改位于全局 `pages/_app.js`，非 claude 主题目录内。合并时请特别关注此文件。
+:::
 
 原始代码存在两个问题：
 

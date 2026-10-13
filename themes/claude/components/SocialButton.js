@@ -17,6 +17,21 @@ const SocialButton = () => {
           <i className='fab fa-github' />
         </a>
       )}
+      {siteConfig('CONTACT_ORCID') && (
+        <a target='_blank' rel='noreferrer' title='ORCID' href={siteConfig('CONTACT_ORCID')}>
+          <i className='fab fa-orcid' />
+        </a>
+      )}
+      {siteConfig('CONTACT_CSDN') && (
+        <a target='_blank' rel='noreferrer' title='CSDN' href={siteConfig('CONTACT_CSDN')}>
+          <i className='fab fa-csdn' />
+        </a>
+      )}
+      {siteConfig('CONTACT_JUEJIN') && (
+        <a target='_blank' rel='noreferrer' title='稀土掘金' href={siteConfig('CONTACT_JUEJIN')}>
+          <i className='fab fa-juejin' />
+        </a>
+      )}
       {siteConfig('CONTACT_TWITTER') && (
         <a target='_blank' rel='noreferrer' title='Twitter' href={siteConfig('CONTACT_TWITTER')}>
           <i className='fab fa-twitter' />

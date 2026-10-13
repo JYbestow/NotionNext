@@ -57,6 +57,10 @@ const CONFIG = {
   // ---------------------------------------------------------------------------
   // 侧栏（SidePanel）小部件
   // ---------------------------------------------------------------------------
+  // 单页隐藏侧栏请在 Notion 该页配置，不影响其它 Page：
+  // - 页面 Full width
+  // - 或字段 HIDE_SIDEBAR=true / SIDEBAR=false
+  // - 或 ext={"HIDE_SIDEBAR":true}
   /** 公告（有公告数据时） */
   FUWARI_WIDGET_NOTICE: true,
   /** 最新文章列表 */
@@ -131,7 +135,7 @@ const CONFIG = {
   FUWARI_ARTICLE_META: true,
   /** 分享条 */
   FUWARI_ARTICLE_SHARE: true,
-  /** 文末版权信息块 */
+  /** 文章版权声明：true 全部显示；false 全部关闭；custom 仅填写 copyright 时显示 */
   FUWARI_ARTICLE_COPYRIGHT: true,
   /** 文末评论区（需在 `blog.config.js` 配置任一种评论服务，如 COMMENT_GISCUS_REPO / COMMENT_TWIKOO_ENV_ID 等，否则不渲染） */
   FUWARI_ARTICLE_COMMENT: true,
