@@ -6,6 +6,7 @@ import { useGlobal } from '@/lib/global'
 import SmartLink from '@/components/SmartLink'
 import { EndspacePlayer } from './EndspacePlayer'
 import NotionMenuIcon from './NotionMenuIcon'
+import CONFIG from '../config'
 import {
   IconMenu2,
   IconX,
@@ -161,7 +162,7 @@ export const MobileNav = (props) => {
       <nav className="fixed top-0 left-0 right-0 z-50 md:hidden bg-white border-b border-[var(--endspace-border-base)] safe-area-top">
         <div className="flex items-center justify-between h-20 px-5">
           {/* Left: Avatar */}
-          <SmartLink href="/aboutme" title="Profile" className="flex-shrink-0 flex items-center">
+          <SmartLink href={siteConfig('ENDSPACE_PATH_ABOUT', '/about', CONFIG)} title="Profile" className="flex-shrink-0 flex items-center">
             <div className="w-14 h-14 rounded-full overflow-hidden transition-colors">
               <img 
                 src={avatarUrl}

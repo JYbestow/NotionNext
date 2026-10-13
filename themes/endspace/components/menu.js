@@ -82,8 +82,21 @@ export const getEndspaceMenuItems = ({ customNav, customMenu } = {}) => {
       icon: 'endspace:archive',
       show: siteConfig('ENDSPACE_MENU_ARCHIVE', null, CONFIG)
     },
-    { name: 'Portfolio', path: '/portfolio', icon: 'endspace:portfolio' },
-    { name: 'Friends', path: '/friends', icon: 'endspace:friends' },
+    // Portfolio 默认隐藏：站点通常没有作品集页，避免侧栏出现指向 404 的链接。
+    // 需要时把 ENDSPACE_MENU_PORTFOLIO 设为 true（Notion Config 或主题 config）。
+    {
+      name: 'Portfolio',
+      path: siteConfig('ENDSPACE_PATH_PORTFOLIO', '/portfolio', CONFIG),
+      icon: 'endspace:portfolio',
+      show: siteConfig('ENDSPACE_MENU_PORTFOLIO', false, CONFIG)
+    },
+    // 友链指向站点中真实存在的友链页 slug（NotionNext 模板默认为 /links），
+    // 而非 endspace 原生的 /friends。
+    {
+      name: 'Friends',
+      path: siteConfig('ENDSPACE_PATH_FRIENDS', '/links', CONFIG),
+      icon: 'endspace:friends'
+    },
     {
       name: 'Search',
       path: '/search',
