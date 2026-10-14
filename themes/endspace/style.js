@@ -1911,16 +1911,23 @@ export const Style = () => {
       }
       .eds-meta__fields {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-        gap: 1px;
+        /* 列数由 PostMeta 按实际字段数算好（--eds-meta-cols）：
+           8 个字段 → 4 列两行，不会把最后一个字段孤零零地挤到第二行。 */
+        grid-template-columns: repeat(var(--eds-meta-cols, 4), minmax(0, 1fr));
+        max-width: calc(var(--eds-meta-cols, 4) * 230px);
+        gap: 0;
         margin: 0;
-        background: var(--endspace-border-base);
-        border: 1px solid var(--endspace-border-base);
+        border-right: 1px solid var(--endspace-border-base);
+        border-bottom: 1px solid var(--endspace-border-base);
       }
       .eds-meta__field {
         min-width: 0;
         padding: 8px 10px 9px;
         background: var(--endspace-bg-primary);
+        /* 每格自画上/左边框 + 容器补右/下边 → 最后一行没填满的空位不画任何东西。
+           原先靠容器底色透过 1px 间隙画线，空位会被涂成一整块灰色。 */
+        border-top: 1px solid var(--endspace-border-base);
+        border-left: 1px solid var(--endspace-border-base);
       }
       .eds-meta__field dt {
         font-size: 8.5px;
@@ -1931,9 +1938,8 @@ export const Style = () => {
         margin: 3px 0 0;
         font-size: 12.5px;
         color: var(--endspace-text-primary);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        /* 不再截断：日期 / 编号 / 分类宁可变两行，也不要变成省略号。 */
+        overflow-wrap: anywhere;
       }
       .eds-meta__tags {
         display: flex;
@@ -2090,7 +2096,10 @@ export const Style = () => {
           font-size: 23px;
         }
         .eds-meta__fields {
-          grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+          /* 窄屏按可用宽度自然分列；auto-fit 会折叠空轨道，
+             配合「每格自画边框」不会留下灰色空块。 */
+          grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+          max-width: none;
         }
         .eds-hero__wordmark {
           font-size: 10px;

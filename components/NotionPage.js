@@ -115,10 +115,14 @@ const NotionPage = ({ post, className }) => {
     <div
       id='notion-article'
       className={`mx-auto overflow-hidden ${className || ''}`}>
+      {/* 友链画册：让整张卡片成为指向条目 URL 属性的主链接（react-notion-x 的
+          isLinkCollectionToUrlProperty）。开启后卡片内可见的 URL 属性会被降级成
+          非 <a> 元素，因此不会出现 <a> 嵌套；没有 URL 属性的卡片仍走原来的页面路由。 */}
       <NotionRenderer
         recordMap={post?.blockMap}
         mapPageUrl={mapPageUrl}
         mapImageUrl={mapImgUrl}
+        isLinkCollectionToUrlProperty
         components={{
           Code,
           Collection,

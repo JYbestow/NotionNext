@@ -2334,3 +2334,30 @@ html.dark .notion-tabs-panel {
   width: 100%;
   min-width: 100%;
 }
+
+/* Visible URL property inside a friend-link gallery card.
+   With isLinkCollectionToUrlProperty enabled (components/NotionPage.js) the whole
+   card becomes the primary link to the column's URL property, and react-notion-x
+   downgrades the in-card URL property to <form><input type="submit"
+   class="nested-form-link"> so that no <a> ends up nested inside the card <a>.
+   It ships no styling for that element, so without this it renders as a default
+   browser button. Match the plain link text instead. */
+.nested-form-link {
+  display: inline;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.nested-form-link:hover {
+  text-decoration: underline;
+}

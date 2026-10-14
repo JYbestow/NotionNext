@@ -185,6 +185,66 @@ const getCurrentTheme = (router, fallbackTheme) => {
 }
 
 /**
+ * 创建某个主题的基础布局组件。
+ * 注意：next/dynamic 要求 dynamic() 位于模块顶层，不能在 render 期间调用 —— 原因见下方
+ * registerLayoutsForTheme 的说明。
+ */
+const createBaseLayoutComponent = normalizedTheme =>
+  dynamic(
+    () => resolveThemeLayout(normalizedTheme, 'LayoutBase', EmptyBaseLayout),
+    { ssr: true, loading: LayoutLoading }
+  )
+
+/** 创建某个主题的页面布局组件。 */
+const createPageLayoutComponent = (themeName, layoutName) =>
+  dynamic(() => resolveThemeLayout(themeName, layoutName, EmptyPageLayout), {
+    ssr: true,
+    loading: getLayoutLoading(layoutName)
+  })
+
+/** 应用实际会请求的布局名（取自 LAYOUT_MAPPINGS，不额外硬编码）。 */
+const EAGER_LAYOUT_NAMES = [
+  ...new Set(Object.values(LAYOUT_MAPPINGS || {}))
+].filter(Boolean)
+
+/**
+ * 在模块作用域预注册某个主题的所有布局。
+ *
+ * Next.js 会在每次渲染前调用 Loadable.preloadAll()（next/dist/server/render.js），
+ * 而它只 flush “此刻已经注册”的 loadable。若 dynamic() 是在 render 期间才调用的，
+ * 对应的 init 注册得太晚，本轮的 loader 不会被 await：首次渲染只能输出 loading 占位。
+ * 而 next/dynamic 默认的 loading 在生产环境直接返回 null（见 dynamic.js），
+ * 基础布局又恰好没有传 loading —— 于是 #__next 整个为空。
+ *
+ * 表现就是：同一个进程里 “第一个渲染某布局的页面” SSR 出空壳或骨架，
+ * 之后的页面因为模块级缓存命中、且 loadable 已被下一轮 preloadAll() flush 过，才正常。
+ * 哪一页排在第一取决于构建期预渲染顺序，所以同一提交重复构建时异常页面集合会漂移，
+ * 而这些空壳 HTML 会被写进 .next/server/pages 并由 CDN 原样返回。
+ *
+ * 在模块作用域预先注册后，preloadAll() 能覆盖它们，SSR 始终输出真实布局。
+ */
+const registerLayoutsForTheme = themeName => {
+  if (!themeName) return
+  for (const layoutName of EAGER_LAYOUT_NAMES) {
+    if (layoutName === 'LayoutBase') {
+      if (!baseLayoutCache.has(themeName)) {
+        baseLayoutCache.set(themeName, createBaseLayoutComponent(themeName))
+      }
+      continue
+    }
+    const cacheKey = `${themeName}:${layoutName}`
+    if (!layoutByThemeCache.has(cacheKey)) {
+      layoutByThemeCache.set(
+        cacheKey,
+        createPageLayoutComponent(themeName, layoutName)
+      )
+    }
+  }
+}
+
+registerLayoutsForTheme(normalizeThemeName(BLOG.THEME))
+
+/**
  * 加载全局布局
  * @param {*} theme
  * @returns
@@ -194,11 +254,7 @@ export const getBaseLayoutByTheme = theme => {
   if (baseLayoutCache.has(normalizedTheme)) {
     return baseLayoutCache.get(normalizedTheme)
   }
-  const DynamicBaseLayout = dynamic(
-    () =>
-      resolveThemeLayout(normalizedTheme, 'LayoutBase', EmptyBaseLayout),
-    { ssr: true }
-  )
+  const DynamicBaseLayout = createBaseLayoutComponent(normalizedTheme)
   baseLayoutCache.set(normalizedTheme, DynamicBaseLayout)
   return DynamicBaseLayout
 }
@@ -229,12 +285,10 @@ export const useLayoutByTheme = ({ layoutName, theme }) => {
     return layoutByThemeCache.get(cacheKey)
   }
 
-  const loadLayout = () =>
-    resolveThemeLayout(themeQuery, layoutName, EmptyPageLayout)
-  const DynamicLayoutComponent = dynamic(loadLayout, {
-    ssr: true,
-    loading: getLayoutLoading(layoutName)
-  })
+  const DynamicLayoutComponent = createPageLayoutComponent(
+    themeQuery,
+    layoutName
+  )
   layoutByThemeCache.set(cacheKey, DynamicLayoutComponent)
   scheduleFixThemeDOM(themeQuery === BLOG.THEME ? 80 : 240)
   return DynamicLayoutComponent

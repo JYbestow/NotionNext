@@ -1,6 +1,25 @@
 import { docCode, docStatus, docType } from './docMeta'
 
 /**
+ * 档案字段的列数 —— 目标是「不出现孤立字段」。
+ *
+ * 字段少时一列排开最紧凑也最好读；字段多时取能整除字段数的列数（8 → 4+4），
+ * 质数（7）退化为 4 列，最后一行 3 个。空位本身不会被填色：
+ * 分隔线由每一格自己画（见 style.js 的 .eds-meta__field），
+ * 所以最后一行没填满时只会留白，不会出现一整块灰色。
+ */
+const ONE_ROW_MAX = 6
+const MAX_COLS = 4
+const pickColumns = count => {
+  if (count <= 1) return 1
+  if (count <= ONE_ROW_MAX) return count
+  for (let c = MAX_COLS; c >= 2; c--) {
+    if (count % c === 0) return c
+  }
+  return MAX_COLS
+}
+
+/**
  * PostMeta —— 文章页的「档案数据字段」块
  *
  * 字段全部来自真实 Notion 数据，缺失就整格不渲染：
@@ -36,6 +55,8 @@ export const PostMeta = ({ post }) => {
   if (post.wordCount) fields.push({ k: 'CHARS', v: String(post.wordCount) })
   if (post.readTime) fields.push({ k: 'READ', v: `${post.readTime} MIN` })
 
+  const columns = pickColumns(fields.length)
+
   return (
     <div className='eds-meta'>
       {/* 顶部标识行：DOC_ID + 真实状态 */}
@@ -50,7 +71,10 @@ export const PostMeta = ({ post }) => {
       <h1 className='eds-meta__title'>{post.title}</h1>
 
       {fields.length > 0 && (
-        <dl className='eds-meta__fields eds-mono'>
+        <dl
+          className='eds-meta__fields eds-mono'
+          style={{ '--eds-meta-cols': columns }}
+        >
           {fields.map(field => (
             <div key={field.k} className='eds-meta__field'>
               <dt>{field.k}</dt>
