@@ -106,6 +106,23 @@ const CONFIG = {
   ENDSPACE_HOME_FILTER_BAR: true, // 列表页顶部显示分类筛选 + 搜索
   ENDSPACE_HOME_HERO_STATS: true, // 紧凑头部显示文章数/分类数统计
 
+  // ============================================
+  // 档案系统 (Archive System)
+  // ============================================
+  /**
+   * Hero 的定位文案（不是数据字段，所以可以自由改；
+   * 页面上的数字一律取自真实 postCount / categoryOptions / tagOptions）。
+   */
+  ENDSPACE_ARCHIVE_WORDMARK: 'KNOWLEDGE ARCHIVE',
+  ENDSPACE_ARCHIVE_ROLE: 'ENGINEERING NOTES',
+  /**
+   * 卡片是否显示档案页眉（DOC·xxxxxx + 文档类型）。
+   * 编号来自真实 page id 前 6 位，跨分页稳定；关掉就是原来的纯博客卡片。
+   */
+  ENDSPACE_CARD_DOC_HEAD: true,
+  /** 卡片封面 hover 时的工业扫描线（prefers-reduced-motion 下自动关闭） */
+  ENDSPACE_CARD_SCAN: true,
+
   /**
    * 封面覆盖表（逃生舱，默认空）：post.id 或 post.slug -> 图片直链。
    *

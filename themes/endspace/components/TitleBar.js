@@ -11,11 +11,15 @@ import { getPostCover } from './getCover'
  *
  * 2. 文章页：保留原有的封面横幅，正文排版不受影响。
  */
-export const TitleBar = ({ post, postCount, categoryOptions }) => {
+export const TitleBar = ({ post, postCount, categoryOptions, tagOptions }) => {
   // —— 列表页：紧凑身份头（替代原装饰横幅）
   if (!post) {
     return (
-      <ListHeader postCount={postCount} categoryOptions={categoryOptions} />
+      <ListHeader
+        postCount={postCount}
+        categoryOptions={categoryOptions}
+        tagOptions={tagOptions}
+      />
     )
   }
 

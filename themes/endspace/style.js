@@ -1413,12 +1413,15 @@ export const Style = () => {
         transform: scaleX(1);
       }
 
-      /* 封面区：固定 16:9，高度只由卡片宽度决定，原图再大也撑不大卡片 */
+      /* 封面区：固定 16:9，高度只由卡片宽度决定，原图再大也撑不大卡片。
+         max-height 是硬上限：1440 宽屏 3 列时卡片约 327px，16:9 会到 184px，
+         超出设计约定的 140–180px 区间，所以在这里钳住；object-fit 会自适应新比例。 */
       .eds-card__thumb {
         position: relative;
         flex: none;
         width: 100%;
         aspect-ratio: var(--eds-thumb-ratio, 16 / 9);
+        max-height: var(--eds-thumb-max, 180px);
         overflow: hidden;
         background: var(--eds-plate);
         border-bottom: 1px solid var(--endspace-border-base);
@@ -1635,6 +1638,338 @@ export const Style = () => {
         transform: translateX(2px);
       }
 
+      /* ---------- 档案页眉：DOC 编号 + 文档类型 ----------
+         编号来自真实 page id（见 components/docMeta.js），hover 时由左向右被信号黄填充，
+         这是「编号闪烁」的实现：只动 background-size，不触发重排，文字始终可读。 */
+      .eds-doc__head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: none;
+        padding: 5px 10px 4px;
+        font-size: 9.5px;
+        letter-spacing: 0.14em;
+        color: var(--endspace-text-muted);
+        background: var(--endspace-bg-secondary);
+        border-bottom: 1px solid var(--endspace-border-base);
+      }
+      .dark .eds-doc__head {
+        background: #202023;
+      }
+      .eds-doc__code {
+        flex: none;
+        font-weight: 600;
+        color: var(--endspace-text-primary);
+        padding: 0 3px;
+        margin: 0 -3px;
+        background-image: linear-gradient(
+          var(--endspace-accent-yellow),
+          var(--endspace-accent-yellow)
+        );
+        background-repeat: no-repeat;
+        background-position: left center;
+        background-size: 0% 100%;
+        transition:
+          background-size var(--eds-d-mid) var(--eds-ease),
+          color var(--eds-d-mid) var(--eds-ease);
+      }
+      .eds-card:hover .eds-doc__code {
+        background-size: 100% 100%;
+        color: #0a0a0a;
+      }
+      .eds-doc__head-line {
+        flex: 1;
+        height: 1px;
+        background: var(--endspace-border-base);
+      }
+      .eds-doc__type {
+        flex: none;
+        border: 1px solid var(--endspace-border-base);
+        padding: 0 5px;
+        color: var(--endspace-text-secondary);
+      }
+
+      /* 封面工业扫描线：一道柔和的黄色光带自上而下扫过。
+         只在 hover 时出现；prefers-reduced-motion 下整条关闭。 */
+      .eds-card__thumb::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 18%;
+        background: linear-gradient(
+          180deg,
+          transparent 0%,
+          var(--endspace-accent-yellow) 50%,
+          transparent 100%
+        );
+        opacity: 0;
+        transform: translateY(-120%);
+        pointer-events: none;
+        z-index: 3;
+        transition:
+          transform var(--eds-d-slow) var(--eds-ease),
+          opacity var(--eds-d-fast) linear;
+      }
+      .eds-card:hover .eds-card__thumb::after {
+        opacity: 0.3;
+        transform: translateY(560%);
+      }
+
+      /* ---------- 卡片上的档案字段（DATE / CAT） ---------- */
+      .eds-doc__fields {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 4px 12px;
+        font-size: 9.5px;
+        letter-spacing: 0.1em;
+        color: var(--endspace-text-muted);
+        min-width: 0;
+      }
+      .eds-doc__f {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 5px;
+        min-width: 0;
+      }
+      .eds-doc__f i {
+        flex: none;
+        font-style: normal;
+        opacity: 0.72;
+      }
+      .eds-doc__f b {
+        font-weight: 500;
+        color: var(--endspace-text-secondary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* ACCESS 入口文字（箭头沿用原 .eds-card__go-mk 的 hover 变黄） */
+      .eds-card__go-txt {
+        flex: none;
+        font-family: var(--eds-font-mono);
+        font-size: 8.5px;
+        font-style: normal;
+        letter-spacing: 0.16em;
+        margin-right: 6px;
+        opacity: 0.7;
+        transition:
+          opacity var(--eds-d-fast) var(--eds-ease),
+          color var(--eds-d-fast) var(--eds-ease);
+      }
+      .eds-card:hover .eds-card__go-txt {
+        opacity: 1;
+        color: var(--endspace-text-primary);
+      }
+
+      /* ---------- Hero 的档案定位行 ---------- */
+      .eds-hero__wordmark {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        color: var(--endspace-text-secondary);
+      }
+      .eds-hero__wm-sep {
+        color: var(--endspace-border-base);
+      }
+      .eds-hero__role {
+        color: var(--endspace-text-muted);
+      }
+
+      /* ---------- 索引页头：INDEX DATABASE ---------- */
+      .eds-idx {
+        margin: 0 0 20px;
+        padding-bottom: 14px;
+        border-bottom: 2px solid var(--endspace-text-primary);
+      }
+      .eds-idx__bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 9.5px;
+        letter-spacing: 0.16em;
+        color: var(--endspace-text-muted);
+      }
+      .eds-idx__k {
+        flex: none;
+        font-weight: 600;
+        color: var(--endspace-text-primary);
+      }
+      .eds-idx__line {
+        flex: 1;
+        min-width: 12px;
+        height: 1px;
+        background: var(--endspace-border-base);
+      }
+      .eds-idx__kind {
+        flex: none;
+      }
+      .eds-idx__n {
+        flex: none;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 5px;
+      }
+      .eds-idx__n i {
+        font-style: normal;
+        opacity: 0.75;
+      }
+      .eds-idx__n b {
+        font-size: 12.5px;
+        color: var(--endspace-text-primary);
+      }
+      .eds-idx__val {
+        margin: 9px 0 0;
+        font-size: clamp(22px, 3.2vw, 32px);
+        font-weight: 900;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        color: var(--endspace-text-primary);
+        word-break: break-word;
+      }
+      .eds-idx__note {
+        margin: 4px 0 0;
+        font-size: 9.5px;
+        letter-spacing: 0.14em;
+        color: var(--endspace-text-muted);
+      }
+
+      /* ---------- 索引行：分类 / 标签节点的数据库画法 ---------- */
+      .eds-idx-list {
+        display: flex;
+        flex-direction: column;
+        border-top: 1px solid var(--endspace-border-base);
+      }
+      .eds-idx-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 4px;
+        border-bottom: 1px solid var(--endspace-border-base);
+        text-decoration: none !important;
+        transition:
+          background-color var(--eds-d-fast) var(--eds-ease),
+          padding-left var(--eds-d-fast) var(--eds-ease);
+      }
+      .eds-idx-row:hover {
+        background: var(--endspace-bg-secondary);
+        padding-left: 10px;
+      }
+      .eds-idx-row__k {
+        flex: none;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--endspace-text-primary);
+      }
+      .eds-idx-row__line {
+        flex: 1;
+        min-width: 10px;
+        height: 1px;
+        background: var(--endspace-border-base);
+        opacity: 0.7;
+      }
+      .eds-idx-row__n {
+        flex: none;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        color: var(--endspace-text-muted);
+      }
+      .eds-idx-row__go {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 18px;
+        height: 18px;
+        border: 1px solid var(--endspace-border-base);
+        color: var(--endspace-text-secondary);
+        transition:
+          background-color var(--eds-d-fast) var(--eds-ease),
+          border-color var(--eds-d-fast) var(--eds-ease),
+          color var(--eds-d-fast) var(--eds-ease);
+      }
+      .eds-idx-row:hover .eds-idx-row__go {
+        background: var(--endspace-accent-yellow);
+        border-color: var(--endspace-accent-yellow);
+        color: #0a0a0a;
+      }
+
+      /* ---------- 文章页档案数据字段 ----------
+         用 1px 间隙 + 底色画分隔线，比给每格加 border 更不容易出现双线。 */
+      .eds-meta {
+        margin-bottom: 30px;
+      }
+      .eds-meta__bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--endspace-border-base);
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        color: var(--endspace-text-muted);
+      }
+      .eds-meta__id {
+        flex: none;
+        font-weight: 600;
+        color: var(--endspace-text-primary);
+      }
+      .eds-meta__line {
+        flex: 1;
+        min-width: 12px;
+        height: 1px;
+        background: var(--endspace-border-base);
+      }
+      .eds-meta__status {
+        flex: none;
+      }
+      .eds-meta__title {
+        margin: 16px 0 18px;
+        font-size: clamp(26px, 4.6vw, 44px);
+        font-weight: 900;
+        line-height: 1.14;
+        letter-spacing: -0.025em;
+        color: var(--endspace-text-primary);
+      }
+      .eds-meta__fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+        gap: 1px;
+        margin: 0;
+        background: var(--endspace-border-base);
+        border: 1px solid var(--endspace-border-base);
+      }
+      .eds-meta__field {
+        min-width: 0;
+        padding: 8px 10px 9px;
+        background: var(--endspace-bg-primary);
+      }
+      .eds-meta__field dt {
+        font-size: 8.5px;
+        letter-spacing: 0.16em;
+        color: var(--endspace-text-muted);
+      }
+      .eds-meta__field dd {
+        margin: 3px 0 0;
+        font-size: 12.5px;
+        color: var(--endspace-text-primary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .eds-meta__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 14px;
+      }
+
       /* ---------- 入场揭示 ----------
          渐进增强：只有 JS 给网格挂上 data-reveal="on" 才隐藏，
          JS 失效时内容默认可见，绝不会被藏起来。 */
@@ -1742,6 +2077,10 @@ export const Style = () => {
         .eds-card::before,
         .eds-card__go-mk,
         .eds-card__go-mk svg,
+        .eds-doc__code,
+        .eds-card__thumb::after,
+        .eds-idx-row,
+        .eds-idx-row__go,
         .eds-chip,
         .eds-search,
         .eds-search button,
@@ -1751,9 +2090,39 @@ export const Style = () => {
         .eds-card:hover {
           transform: none;
         }
+        /* 扫描光带整条不出现，而不是「瞬间扫完」——那反而更晃眼 */
+        .eds-card:hover .eds-card__thumb::after {
+          opacity: 0;
+        }
+        /* 编号填充也整条关闭：即时闪一下对动效敏感的人同样不友好 */
+        .eds-card:hover .eds-doc__code {
+          background-size: 0% 100%;
+          color: var(--endspace-text-primary);
+        }
         .eds-grid[data-reveal='on'] > * {
           opacity: 1 !important;
           transform: none !important;
+        }
+      }
+
+      /* ---------- 窄屏：索引条折行，字段格收窄 ---------- */
+      @media (max-width: 640px) {
+        .eds-idx__bar {
+          flex-wrap: wrap;
+          gap: 5px 9px;
+        }
+        .eds-idx__line {
+          display: none;
+        }
+        .eds-idx__val {
+          font-size: 23px;
+        }
+        .eds-meta__fields {
+          grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+        }
+        .eds-hero__wordmark {
+          font-size: 10px;
+          letter-spacing: 0.14em;
         }
       }
 

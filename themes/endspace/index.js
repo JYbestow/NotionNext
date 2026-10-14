@@ -13,7 +13,7 @@ import { useEffect, useRef } from 'react'
 import BlogListArchive from './components/BlogListArchive'
 import { BlogListPage } from './components/BlogListPage'
 import { BlogListScroll } from './components/BlogListScroll'
-import { ListFilterBar } from './components/ListHeader'
+import { IndexHeader, ListFilterBar } from './components/ListHeader'
 import { PostGrid } from './components/PostGrid'
 import { Footer } from './components/Footer'
 import { PostLock } from './components/PostLock'
@@ -30,7 +30,7 @@ import useViewportScale from './components/useViewportScale'
 import replaceEndspaceSearchResult from './components/searchHighlight'
 import CONFIG from './config'
 import { Style } from './style'
-import { IconLoader2 } from '@tabler/icons-react'
+import { IconArrowRight, IconLoader2 } from '@tabler/icons-react'
 
 /**
  * Endspace Theme - Endfield Style
@@ -202,8 +202,19 @@ const LayoutIndex = (props) => {
  * @returns
  */
 const LayoutPostList = (props) => {
+  const { category, tag, postCount } = props
+  // 分类 / 标签页补一张「数据库索引」表头：原来这里只有一列卡片，页面显得很空。
+  // 计数用当前路由真实命中的文章数（pages/category|tag/[x]/index.js 里的 postCount）。
+  const indexKind = category ? 'CATEGORY NODE' : tag ? 'TAG MARKER' : null
   return (
     <>
+      {indexKind && (
+        <IndexHeader
+          kindLabel={indexKind}
+          value={category || (tag ? `#${tag}` : null)}
+          postCount={postCount}
+        />
+      )}
       {siteConfig('POST_LIST_STYLE') === 'page' ? (
         <BlogListPage {...props} />
       ) : (
@@ -353,7 +364,7 @@ const Layout404 = (props) => {
  * @returns
  */
 const LayoutSearch = (props) => {
-  const { keyword, posts = [] } = props
+  const { keyword, posts = [], postCount } = props
 
   useEffect(() => {
     if (isBrowser) {
@@ -374,6 +385,11 @@ const LayoutSearch = (props) => {
 
   return (
     <>
+      <IndexHeader
+        kindLabel='SEARCH QUERY'
+        value={keyword ? `“${keyword}”` : null}
+        postCount={postCount}
+      />
       <div className="mb-8">
         <SearchInput {...props} />
       </div>
@@ -485,29 +501,37 @@ const LayoutArchive = (props) => {
  * @returns
  */
 const LayoutCategoryIndex = (props) => {
-  const { categoryOptions } = props
+  const { categoryOptions = [], postCount } = props
+  // 各分类计数之和 = 已归类文章总数（真实值，Notion 的 category 是单选字段）
+  const indexed = categoryOptions.reduce((n, c) => n + (c.count || 0), 0)
   return (
     <>
       <Style />
-      <div className="endspace-card p-8">
-        <h2 className="text-3xl font-black text-[var(--endspace-text-primary)] mb-8 uppercase tracking-wide">
-          ALL_CATEGORIES
-        </h2>
+      <IndexHeader
+        kindLabel='CATEGORY NODE'
+        value='ALL CATEGORIES'
+        postCount={typeof postCount === 'number' ? postCount : indexed}
+        note={`${categoryOptions.length} 个分类节点`}
+      />
+      <div className="endspace-card p-6 md:p-8">
         <div
           id="category-list"
-          className="flex flex-wrap gap-3"
+          className="eds-idx-list"
         >
           {categoryOptions?.map((category) => (
             <SmartLink
               key={category.name}
               href={`/category/${category.name}`}
-              passHref
-              legacyBehavior
+              className="eds-idx-row"
             >
-              <a className="ef-btn group">
-                <span className="ef-btn-indicator"></span>
-                <span className="ef-btn-text">{category.name}</span>
-              </a>
+              <span className="eds-idx-row__k">{category.name}</span>
+              <span className="eds-idx-row__line" aria-hidden="true" />
+              <span className="eds-idx-row__n eds-mono">
+                {typeof category.count === 'number' ? category.count : 0} DOCS
+              </span>
+              <span className="eds-idx-row__go" aria-hidden="true">
+                <IconArrowRight size={11} stroke={2.2} />
+              </span>
             </SmartLink>
           ))}
         </div>
@@ -522,26 +546,33 @@ const LayoutCategoryIndex = (props) => {
  * @returns
  */
 const LayoutTagIndex = (props) => {
-  const { tagOptions } = props
+  const { tagOptions = [], postCount } = props
+  const indexed = tagOptions.reduce((n, t) => n + (t.count || 0), 0)
   return (
     <>
       <Style />
-      <div className="endspace-frame p-8">
-        <h2 className="text-3xl font-black text-[var(--endspace-text-primary)] mb-8 uppercase tracking-wide">
-          ALL_TAGS
-        </h2>
-        <div id="tags-list" className="flex flex-wrap gap-3">
+      <IndexHeader
+        kindLabel='TAG MARKER'
+        value='ALL TAGS'
+        postCount={typeof postCount === 'number' ? postCount : indexed}
+        note={`${tagOptions.length} 个标签标记`}
+      />
+      <div className="endspace-frame p-6 md:p-8">
+        <div id="tags-list" className="eds-idx-list">
           {tagOptions.map((tag) => (
             <SmartLink
               key={tag.name}
               href={`/tag/${encodeURIComponent(tag.name)}`}
-              passHref
-              legacyBehavior
+              className="eds-idx-row"
             >
-              <a className="ef-btn group">
-                <span className="ef-btn-indicator"></span>
-                <span className="ef-btn-text">#{tag.name}</span>
-              </a>
+              <span className="eds-idx-row__k">#{tag.name}</span>
+              <span className="eds-idx-row__line" aria-hidden="true" />
+              <span className="eds-idx-row__n eds-mono">
+                {typeof tag.count === 'number' ? tag.count : 0} DOCS
+              </span>
+              <span className="eds-idx-row__go" aria-hidden="true">
+                <IconArrowRight size={11} stroke={2.2} />
+              </span>
             </SmartLink>
           ))}
         </div>

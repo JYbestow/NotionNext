@@ -3,15 +3,20 @@ import { siteConfig } from '@/lib/config'
 import { IconArrowRight } from '@tabler/icons-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import CONFIG from '../config'
+import { docCode, docType, seqNo } from './docMeta'
 import { getPostCover } from './getCover'
 
 /**
- * BlogPostCard —— 紧凑工业档案卡片
+ * BlogPostCard —— 工业档案卡（DOCUMENT）
+ *
+ * 与「普通博客卡片」的区别在于信息层级被改成档案的读法：
+ *   DOC 编号 / 文档类型  →  缩略图  →  标题  →  DATE · CAT  →  标签 + ACCESS
+ * 所有字段都取自真实 Notion 数据（见 docMeta.js），缺字段就整格不渲染，
+ * 不会出现空标签或占位符。
  *
  * 尺寸约束（首页密度的关键，原实现没有这些约束所以卡片被撑到 650–780px 高）：
- * 1. 封面高度只由「卡片宽度 × ENDSPACE_CARD_THUMB_RATIO」决定。
- *    原实现用 `w-full aspect-video` 且容器宽 896–1075px，封面单张就 503–604px 高，
- *    占掉卡片 77% 的高度；现在封面永远是固定比例的窄条，原图再大也撑不大卡片。
+ * 1. 封面高度只由「卡片宽度 × ENDSPACE_CARD_THUMB_RATIO」决定，
+ *    原图再大也撑不大卡片。
  * 2. 标题 / 摘要按配置行数截断；footer 用 margin-top:auto 贴底，
  *    同一行的卡片高度由 grid 自动拉平，不会出现参差。
  * 3. 封面适配 auto：图片加载后按真实比例判断 —— 比例贴合封面框才用 cover
@@ -21,6 +26,7 @@ import { getPostCover } from './getCover'
 export const BlogPostCard = ({ post, showSummary = true, index }) => {
   const showCover = siteConfig('ENDSPACE_POST_LIST_COVER', true, CONFIG)
   const showPreview = siteConfig('ENDSPACE_POST_LIST_PREVIEW', true, CONFIG)
+  const showDocHead = siteConfig('ENDSPACE_CARD_DOC_HEAD', true, CONFIG)
   const fitMode = siteConfig('ENDSPACE_CARD_THUMB_FIT', 'auto', CONFIG)
   const maxTags = siteConfig('ENDSPACE_CARD_TAGS', 3, CONFIG)
 
@@ -61,10 +67,25 @@ export const BlogPostCard = ({ post, showSummary = true, index }) => {
   }, [applyFit, cover])
 
   const tags = (post?.tags || []).slice(0, maxTags)
+  const code = docCode(post)
+  const type = docType(post)
 
   return (
     <SmartLink href={`/${post.slug}`}>
       <article className='eds-card'>
+        {/* 档案页眉：DOC 编号 + 文档类型。两者任一缺失就整条不渲染 */}
+        {showDocHead && (code || type) && (
+          <div className='eds-doc__head eds-mono'>
+            {code && <span className='eds-doc__code'>{`DOC·${code}`}</span>}
+            <span className='eds-doc__head-line' aria-hidden='true' />
+            {type && (
+              <span className='eds-doc__type' aria-hidden='true'>
+                {type}
+              </span>
+            )}
+          </div>
+        )}
+
         {showCover &&
           (cover && !imgFailed ? (
             <div className='eds-card__thumb' data-fit={fit}>
@@ -76,14 +97,14 @@ export const BlogPostCard = ({ post, showSummary = true, index }) => {
                 decoding='async'
                 onLoad={event => applyFit(event.currentTarget)}
                 // 图源失效（被删 / 防盗链 / 拒绝抓取）时不留一个空框，
-                // 换成主题自绘的工业档案底板。线上 12 篇封面里已有 3 张图源挂掉。
+                // 换成主题自绘的工业档案底板。
                 onError={() => setImgFailed(true)}
                 className='eds-card__img'
                 style={{ objectFit: fit }}
               />
               {typeof index === 'number' && (
-                <span className='eds-card__idx'>
-                  {String(index + 1).padStart(2, '0')}
+                <span className='eds-card__idx' aria-hidden='true'>
+                  {seqNo(index)}
                 </span>
               )}
             </div>
@@ -104,17 +125,6 @@ export const BlogPostCard = ({ post, showSummary = true, index }) => {
           ))}
 
         <div className='eds-card__body'>
-          {/* 元信息：日期 · 分类 */}
-          <div className='eds-card__meta eds-mono'>
-            {post?.publishDay && <span>{post.publishDay}</span>}
-            {post?.publishDay && post?.category && (
-              <span className='eds-card__sep' />
-            )}
-            {post?.category && (
-              <span className='eds-card__cat'>{post.category}</span>
-            )}
-          </div>
-
           {/* 标题 */}
           <h2 className='eds-card__title'>{post?.title}</h2>
 
@@ -123,7 +133,25 @@ export const BlogPostCard = ({ post, showSummary = true, index }) => {
             <p className='eds-card__summary'>{post.summary}</p>
           )}
 
-          {/* 标签 + 进入标记 */}
+          {/* 档案字段：日期 / 分类。真实字段缺失时整格不渲染 */}
+          {(post?.publishDay || post?.category) && (
+            <div className='eds-doc__fields eds-mono'>
+              {post?.publishDay && (
+                <span className='eds-doc__f'>
+                  <i>DATE</i>
+                  <b>{post.publishDay}</b>
+                </span>
+              )}
+              {post?.category && (
+                <span className='eds-doc__f'>
+                  <i>CAT</i>
+                  <b>{post.category}</b>
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* 标签 + ACCESS 入口 */}
           <div className='eds-card__foot'>
             <div className='eds-card__tags'>
               {tags.map(tag => (
@@ -132,8 +160,9 @@ export const BlogPostCard = ({ post, showSummary = true, index }) => {
                 </span>
               ))}
             </div>
-            <span className='eds-card__go' aria-hidden='true'>
-              <span className='eds-card__go-mk'>
+            <span className='eds-card__go'>
+              <i className='eds-card__go-txt'>ACCESS</i>
+              <span className='eds-card__go-mk' aria-hidden='true'>
                 <IconArrowRight size={10} stroke={2.2} />
               </span>
             </span>
