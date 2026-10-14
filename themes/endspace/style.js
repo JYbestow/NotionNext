@@ -1664,6 +1664,17 @@ export const Style = () => {
         border-radius: 0;
         background: var(--eds-plate);
       }
+      /* react-notion-x 给 pdf 块套了两层壳：figure 是 display:flex，
+         里面还有一层 padding 8/16 的匿名 div，作为 flex item 它的宽度是
+         auto，于是 <object> 被卡在 512px——而阅读栏有 798px。
+         这里让它们都铺满。只作用于 -pdf，不影响图片和其它 asset。 */
+      .notion-asset-wrapper-pdf {
+        display: block;
+      }
+      .notion-asset-wrapper-pdf > div {
+        width: 100%;
+        max-width: none;
+      }
       .eds-pdf__bar {
         display: flex;
         align-items: center;

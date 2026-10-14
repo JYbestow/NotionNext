@@ -29,6 +29,8 @@ export function Pdf({ file, block }) {
   } catch (_) {
     /* 文件名解析失败不影响渲染 */
   }
+  // Notion 签名地址的最后一段形如 attachment:<uuid>:<真实文件名>，去掉前缀
+  name = name.replace(/^attachment:[0-9a-f-]{36}:/i, '') || 'PDF 文档'
 
   return (
     <div className='eds-pdf'>
