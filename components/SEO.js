@@ -65,8 +65,26 @@ const SEO = props => {
     image = getAbsoluteImageUrl(meta.image || '/bg_image.jpg', LINK)
   }
   const TITLE = siteConfig('TITLE')
-  const title = meta?.title || TITLE
-  const description = meta?.description || `${siteInfo?.description}`
+  /**
+   * 标题 / 描述分段清理。
+   *
+   * 背景：当页面走 ISR 的 fallback 壳时（getStaticPaths 里 fallback: true 且该路径没有预渲染，
+   * 例如 /tag/<未预渲染的标签>、/search/<任意关键词>），Next 的 fallback 壳 pageProps 为空，
+   * 于是下面那些 ${tag} / ${siteInfo?.title} / ${siteInfo?.description} 模板会拼出字面量 undefined。
+   * 线上实测：<title>undefined | 标签 | undefined</title>、description=undefined（客户端水合后才变正常，
+   * 但爬虫与社交预览读到的就是首屏 HTML）。
+   *
+   * 这里逐段丢掉空值与字面量 undefined —— 对任何真实取值都是恒等操作（join 回来与原文一致），
+   * 只影响原本会输出假值的情况。
+   */
+  const cleanSeoText = value =>
+    String(value ?? '')
+      .split('|')
+      .map(segment => segment.trim())
+      .filter(segment => segment && segment !== 'undefined')
+      .join(' | ')
+  const title = cleanSeoText(meta?.title || TITLE)
+  const description = cleanSeoText(meta?.description || siteInfo?.description)
   const type = meta?.type === 'Post' ? 'article' : meta?.type || 'website'
   const language =
     router?.locale || siteConfig('LANG', 'zh-CN', NOTION_CONFIG)

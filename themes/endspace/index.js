@@ -502,15 +502,15 @@ const LayoutArchive = (props) => {
  */
 const LayoutCategoryIndex = (props) => {
   const { categoryOptions = [], postCount } = props
-  // 各分类计数之和 = 已归类文章总数（真实值，Notion 的 category 是单选字段）
-  const indexed = categoryOptions.reduce((n, c) => n + (c.count || 0), 0)
   return (
     <>
       <Style />
       <IndexHeader
         kindLabel='CATEGORY NODE'
         value='ALL CATEGORIES'
-        postCount={typeof postCount === 'number' ? postCount : indexed}
+        // 这里的计数就是全站已发布文章数（/category 页面的 props.postCount 未被筛选覆盖），
+        // 与 Hero 同口径；缺失时 IndexHeader 自己会省略这一格，不做任何求和推算。
+        postCount={postCount}
         note={`${categoryOptions.length} 个分类节点`}
       />
       <div className="endspace-card p-6 md:p-8">
@@ -547,14 +547,14 @@ const LayoutCategoryIndex = (props) => {
  */
 const LayoutTagIndex = (props) => {
   const { tagOptions = [], postCount } = props
-  const indexed = tagOptions.reduce((n, t) => n + (t.count || 0), 0)
   return (
     <>
       <Style />
       <IndexHeader
         kindLabel='TAG MARKER'
         value='ALL TAGS'
-        postCount={typeof postCount === 'number' ? postCount : indexed}
+        // 全站文章数，不用 tagOptions 求和 —— 一篇文章可以有多个标签，求和会重复计数
+        postCount={postCount}
         note={`${tagOptions.length} 个标签标记`}
       />
       <div className="endspace-frame p-6 md:p-8">

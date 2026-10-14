@@ -12,12 +12,21 @@ import CONFIG from '../config'
  * 三段式：eyebrow（[01] ── LABEL）→ 站名 → 档案定位行 + 真实统计。
  * 垂直占用控制在 170px 以内 —— 不做大面积 Banner，工业站是靠信息密度而不是留白。
  *
- * 统计数字全部来自真实 props：postCount / categoryOptions / tagOptions。
+ * 统计数字全部来自真实 props：postCount / sitePostCount / categoryOptions / tagOptions。
  * KNOWLEDGE ARCHIVE、ENGINEERING NOTES 是站点的定位文案（可在 config.js / Notion 配置里改），
  * 不属于「数据字段」，因此不会伪造任何计数。
+ *
+ * 口径说明（三者必须同为「全站」）：
+ *  - DOCUMENTS：全站已发布文章数。首页的 postCount 本来就是全站值；
+ *    /category/[x]、/tag/[x]、/search/[k] 的页面代码把 postCount 覆盖成了
+ *    「当前筛选命中的文章数」，所以那三个页面额外传 sitePostCount。
+ *    当前路由的命中数只在 IndexHeader 的 ARTICLE COUNT 里显示，两处不重复。
+ *  - CATEGORIES / TAGS：全站分类数 / 标签数（categoryOptions / tagOptions 均为全站数据）。
+ *    注意这里只数组长，不做求和 —— 一篇文章可以有多个标签，标签数求和会重复计数。
  */
 export const ListHeader = ({
   postCount,
+  sitePostCount,
   categoryOptions = [],
   tagOptions = []
 }) => {
@@ -30,10 +39,14 @@ export const ListHeader = ({
   const role = siteConfig('ENDSPACE_ARCHIVE_ROLE', 'ENGINEERING NOTES', CONFIG)
   const showStats = siteConfig('ENDSPACE_HOME_HERO_STATS', true, CONFIG)
 
+  // 全站口径：优先站点级字段，缺失时回退到 postCount（首页即为全站值）
+  const totalDocs =
+    typeof sitePostCount === 'number' ? sitePostCount : postCount
+
   const stats = []
   if (showStats) {
-    if (typeof postCount === 'number' && postCount > 0) {
-      stats.push({ value: postCount, label: 'DOCUMENTS' })
+    if (typeof totalDocs === 'number' && totalDocs > 0) {
+      stats.push({ value: totalDocs, label: 'DOCUMENTS' })
     }
     if (categoryOptions.length > 0) {
       stats.push({ value: categoryOptions.length, label: 'CATEGORIES' })

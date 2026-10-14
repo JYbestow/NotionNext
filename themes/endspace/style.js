@@ -367,8 +367,12 @@ export const Style = () => {
         color: var(--endspace-text-primary) !important;
       }
 
-      /* Headers - NieR: Automata Style Dynamic Shadow */
-      /* Requirement: Misaligned when not hovered, Merged when hovered */
+      /* 正文标题排版
+         这里原先是一段 "NieR: Automata Style Dynamic Shadow"：用两层偏移的彩色 text-shadow
+         （左上青 -4px -2px + 右下红 4px 2px）把每个标题画成三层重影，再把 opacity 压到 0.85，
+         鼠标 hover 时才合并成一层。正文标题的第一目标是可读，这种偏移副本会让笔画发虚
+         （中文方块字尤其明显），已整段移除。
+         工业风格改由「信号黄竖条 + 左侧缩进 + 字重字距」承担，样式范围不变，仍是正文标题。 */
       #notion-article h1, #notion-article h2, #notion-article h3 {
         color: var(--endspace-text-primary);
         font-weight: 800;
@@ -377,27 +381,9 @@ export const Style = () => {
         position: relative;
         padding-left: 1rem;
         letter-spacing: 0.02em; /* Slightly wider spacing for the 'digital' look */
-        transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Snappy tech transition */
-
-        /* Default: Distinctly Misaligned / Interlaced Layers */
-        /* Layer 1: Cyan Ghost (Top Left) */
-        /* Layer 2: Red/Dark Ghost (Bottom Right) */
-        text-shadow:
-          -4px -2px 0 rgba(6, 182, 212, 0.5),
-          4px 2px 0 rgba(255, 50, 50, 0.3);
-
-        /* Subtle opacity drop to emphasize the 'hologram' feel when idle */
-        opacity: 0.85;
-      }
-
-      /* Hover: Merge / Snap to focus */
-      #notion-article h1:hover, #notion-article h2:hover, #notion-article h3:hover {
-        /* Shadows merge into the text */
-        text-shadow:
-          0 0 0 rgba(6, 182, 212, 0),
-          0 0 0 rgba(255, 50, 50, 0);
+        /* 单层字形：无偏移副本、无半透明，标题保持全对比度 */
+        text-shadow: none;
         opacity: 1;
-        transform: translateX(2px); /* Slight physical shift on 'lock-on' */
       }
 
       #notion-article h1::before,
@@ -1438,20 +1424,6 @@ export const Style = () => {
       /* 只有比例真正贴合的图才做 hover 微缩放；contain 的图缩放会切边，不做 */
       .eds-card__thumb[data-fit='cover']:hover .eds-card__img {
         transform: scale(1.04);
-      }
-      /* 卡片序号 —— 每张卡唯一的编号装饰 */
-      .eds-card__idx {
-        position: absolute;
-        top: 0;
-        right: 0;
-        z-index: 2;
-        font-family: var(--eds-font-mono);
-        font-size: 9px;
-        font-weight: 500;
-        letter-spacing: 0.12em;
-        padding: 2px 6px 1px;
-        background: var(--endspace-text-primary);
-        color: var(--endspace-bg-primary);
       }
       /* 封面缺失 / 图源失效时的自绘底板：不引入任何外部图片，
          用细网格 + 幽灵编号 + 黄色方块标记，保持与个人主页一致的工业档案语气。

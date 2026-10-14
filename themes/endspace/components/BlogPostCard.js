@@ -3,7 +3,7 @@ import { siteConfig } from '@/lib/config'
 import { IconArrowRight } from '@tabler/icons-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import CONFIG from '../config'
-import { docCode, docType, seqNo } from './docMeta'
+import { docCode, docType } from './docMeta'
 import { getPostCover } from './getCover'
 
 /**
@@ -102,11 +102,6 @@ export const BlogPostCard = ({ post, showSummary = true, index }) => {
                 className='eds-card__img'
                 style={{ objectFit: fit }}
               />
-              {typeof index === 'number' && (
-                <span className='eds-card__idx' aria-hidden='true'>
-                  {seqNo(index)}
-                </span>
-              )}
             </div>
           ) : (
             <div className='eds-card__thumb eds-card__thumb--blank'>

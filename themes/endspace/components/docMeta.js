@@ -32,8 +32,3 @@ export function docStatus(post) {
   const status = String(post?.status || '').trim()
   return status ? status.toUpperCase() : null
 }
-
-/** 列表序号：01 / 02 …… 由网格顺序决定，服务端与客户端同一个 index */
-export function seqNo(index) {
-  return String((typeof index === 'number' ? index : 0) + 1).padStart(2, '0')
-}
