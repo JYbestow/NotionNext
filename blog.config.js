@@ -11,6 +11,21 @@ const BLOG = {
   SINCE: process.env.NEXT_PUBLIC_SINCE || 2024, // e.g if leave this empty, current year will be used.
 
   PSEUDO_STATIC: process.env.NEXT_PUBLIC_PSEUDO_STATIC || false, // 伪静态路径，开启后所有文章URL都以 .html 结尾。
+
+  // 文章 URL 里的分类前缀映射：POST_URL_PREFIX 含 %category% 时生效，
+  // 把中文分类名换成英文，避免出现 /课程/xxx 这种需要百分号编码的路径。
+  // 说明：
+  //   1. Notion CONFIG-TABLE 里的同名配置优先级更高（siteConfig 先读 Notion）。
+  //      那里原本配了这条，但值里混进了中文引号 ” 导致 JSON.parse 失败、
+  //      被 convertVal 静默吞掉，映射从未生效；现已清空，改由这里提供默认值。
+  //   2. “机械工程” 这个分类已经不存在，所以没有列进来。
+  //   3. 改这里的任何一个键都会改变所有文章 URL，必须同步维护
+  //      next.config.js 里 redirects 的旧路径 301，否则旧链接会 404。
+  POST_URL_PREFIX_MAPPING_CATEGORY: {
+    '课程': 'courses',
+    '妙妙工具': 'tools',
+    '生活': 'life'
+  },
   NEXT_REVALIDATE_SECOND: process.env.NEXT_PUBLIC_REVALIDATE_SECOND || 60, // 更新缓存间隔 单位(秒)；即每个页面有60秒的纯静态期、此期间无论多少次访问都不会抓取notion数据；调大该值有助于节省Vercel资源、同时提升访问速率，但也会使文章更新有延迟。
   REVALIDATION_TOKEN: process.env.REVALIDATION_TOKEN || '', // On-Demand Revalidation Token，设置后可通过 POST /api/revalidate 立即刷新页面缓存（解决 Notion 内容更新延迟问题）
   APPEARANCE: process.env.NEXT_PUBLIC_APPEARANCE || 'auto', // ['light', 'dark', 'auto'], // light 日间模式 ， dark夜间模式， auto根据时间和主题自动夜间模式

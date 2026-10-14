@@ -1651,6 +1651,78 @@ export const Style = () => {
         transform: none;
       }
 
+      /* ---------- 文章内嵌 PDF ----------
+         Notion 的 pdf 块默认渲染成 <object height="100%">，父容器没有高度时
+         会塌到 320px，于是 896px 的阅读栏里只剩一个 544x320 的小框，
+         讲义/试卷这类长文档基本没法读。这里铺满正文栏并给足高度，
+         顶部补一条始终可见的出口信息条（文件名 + 在新标签打开），
+         即使浏览器不支持内嵌预览也有明确出路。 */
+      .eds-pdf {
+        width: 100%;
+        margin: 1.75rem 0;
+        border: 1px solid var(--eds-line);
+        border-radius: 0;
+        background: var(--eds-plate);
+      }
+      .eds-pdf__bar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid var(--eds-line);
+      }
+      .eds-pdf__tag {
+        flex: none;
+        padding: 0.15rem 0.4rem;
+        color: var(--endspace-text-primary);
+        background: var(--endspace-accent-yellow);
+      }
+      .eds-pdf__name {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: 0.8125rem;
+        color: var(--endspace-text-secondary);
+      }
+      .eds-pdf__open {
+        flex: none;
+        font-size: 0.8125rem;
+        color: var(--endspace-text-primary);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: border-color var(--eds-d-fast) var(--eds-ease);
+      }
+      .eds-pdf__open:hover {
+        border-bottom-color: var(--endspace-accent-yellow);
+      }
+      .eds-pdf__view {
+        display: block;
+        width: 100%;
+        /* 长讲义给足高度，上限 1200px 免得短文档留白过多 */
+        height: clamp(520px, 85vh, 1200px);
+        border: 0;
+        background: #ffffff;
+      }
+      .eds-pdf__fallback {
+        padding: 1.5rem;
+        font-size: 0.875rem;
+        color: var(--endspace-text-secondary);
+      }
+      .eds-pdf__fallback a {
+        color: var(--endspace-text-primary);
+        text-decoration: underline;
+      }
+      @media (max-width: 720px) {
+        .eds-pdf {
+          margin: 1.25rem 0;
+        }
+        .eds-pdf__view {
+          height: 70vh;
+        }
+      }
+
       /* ---------- 动效降级 ---------- */
       @media (prefers-reduced-motion: reduce) {
         .eds-card,

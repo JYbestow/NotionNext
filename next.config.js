@@ -260,6 +260,10 @@ const nextConfig = {
           destination: '/rss/feed.xml',
           permanent: true
         }
+        // 注意：旧的中文分类前缀 -> 英文前缀（/课程/xxx -> /courses/xxx）的 301
+        // 不能写在这里。Next 匹配 redirects 用的是「百分号编码后的」pathname，
+        // 而 source 里的中文是字面量，永远匹配不上（实测 404）。
+        // 那段逻辑放在 middleware.ts 里，那里可以 decodeURIComponent 后匹配。
       ]
     },
   // 重写url
