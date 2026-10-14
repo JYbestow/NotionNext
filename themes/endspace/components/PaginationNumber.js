@@ -30,7 +30,7 @@ const PaginationNumber = ({ page, totalPage }) => {
     return (
       <SmartLink href={href} legacyBehavior passHref>
         <a className="w-10 h-10 rounded-full bg-white flex items-center justify-center p-1 cursor-pointer group shadow-lg transition-transform active:scale-95" aria-label={label}>
-          <div className="w-full h-full rounded-full flex items-center justify-center bg-transparent group-hover:bg-[#FBFB46] transition-colors duration-200">
+          <div className="w-full h-full rounded-full flex items-center justify-center bg-transparent group-hover:bg-[#FFFA00] transition-colors duration-200">
             <Icon size={16} stroke={2} className="text-black" />
           </div>
         </a>

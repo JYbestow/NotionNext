@@ -1,114 +1,115 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
 import { isBrowser } from '@/lib/utils'
+import { useCallback, useEffect, useRef } from 'react'
 
 /**
  * Viewport Scale Hook - Endfield-style proportional scaling
  *
- * This hook dynamically adjusts the html element's font-size based on viewport dimensions,
- * allowing all rem-based measurements to scale proportionally.
+ * ⚠️ 这个效果会把根字号按视口等比放大：
+ *    1920 宽屏 → 19.2px，2560 宽屏 → 顶到上限 24px（+50%）。
+ * 因为 Tailwind 的尺寸几乎全是 rem，根字号一涨，容器宽度、封面高度、
+ * 间距、字号会一起膨胀 —— 大屏上首页一屏只能放下一篇文章。
+ * 所以它是显式开启的增强项（ENDSPACE_VIEWPORT_SCALE，默认 false），
+ * 而不是默认行为；博客的默认根字号固定 16px，并尊重用户浏览器的字号设置。
  *
  * Algorithm based on Endfield website:
- * - Landscape: design base 1920 x 1080 (standard HD for larger content)
- * - Portrait: design base 390 x 844 (iPhone 14 size for mobile)
+ * - Landscape: design base 1440 x 900
+ * - Portrait: design base 390 x 844
  * - Scales by whichever dimension maintains aspect ratio
  */
+
+// 提到模块级，保证引用稳定（否则每次 render 都会重建对象，
+// 让 applyScale 的 useCallback 失效、effect 反复重挂载）
+const DEFAULT_LANDSCAPE_BASE = { width: 1440, height: 900 }
+const DEFAULT_PORTRAIT_BASE = { width: 390, height: 844 }
+
 const useViewportScale = (options = {}) => {
   const {
-    // 1440x900 as landscape base for larger content on regular screens (similar to Notion style)
-    landscapeBase = { width: 1440, height: 900 },
-    // 390x844 as portrait base (iPhone 14 size)
-    portraitBase = { width: 390, height: 844 },
+    enabled = false,
+    landscapeBase = DEFAULT_LANDSCAPE_BASE,
+    portraitBase = DEFAULT_PORTRAIT_BASE,
     baseFontSize = 16,
     minFontSize = 14,
     maxFontSize = 24
   } = options
 
-  // Cache previous dimensions to avoid unnecessary updates
-  let _innerWidth = 0
-  let _innerHeight = 0
+  // 缓存上一次的视口尺寸，避免无意义的重算
+  const dimsRef = useRef({ width: 0, height: 0 })
 
   const applyScale = useCallback(() => {
     if (!isBrowser) return
+    const html = document.documentElement
+
+    // 未启用：不写入任何字号，并清掉可能残留的内联值
+    if (!enabled) {
+      if (html.style.fontSize) html.style.fontSize = ''
+      html.style.removeProperty('--endspace-viewport-scale')
+      html.style.removeProperty('--endspace-base-font-size')
+      return
+    }
 
     const innerWidth = window.innerWidth
     const innerHeight = window.innerHeight
 
-    // Skip if dimensions haven't changed
-    if (innerWidth === _innerWidth && innerHeight === _innerHeight) {
+    if (
+      innerWidth === dimsRef.current.width &&
+      innerHeight === dimsRef.current.height
+    ) {
       return
     }
-    _innerWidth = innerWidth
-    _innerHeight = innerHeight
+    dimsRef.current = { width: innerWidth, height: innerHeight }
 
     let fontSize = baseFontSize
 
     if (innerHeight >= innerWidth) {
-      // Portrait mode: use portrait design base (1080 x 1920)
-      const designWidth = portraitBase.width
-      const designHeight = portraitBase.height
-
-      if (innerWidth / innerHeight > designWidth / designHeight) {
-        // Viewport is wider than design ratio, scale by height
-        fontSize = baseFontSize * (innerHeight / designHeight)
-      } else {
-        // Viewport is taller than design ratio, scale by width
-        fontSize = baseFontSize * (innerWidth / designWidth)
-      }
+      // Portrait：以竖屏基准等比缩放
+      const { width: designWidth, height: designHeight } = portraitBase
+      fontSize =
+        innerWidth / innerHeight > designWidth / designHeight
+          ? baseFontSize * (innerHeight / designHeight)
+          : baseFontSize * (innerWidth / designWidth)
     } else {
-      // Landscape mode: use landscape design base (2560 x 1440)
-      const designWidth = landscapeBase.width
-      const designHeight = landscapeBase.height
-
-      if (innerWidth / innerHeight > designWidth / designHeight) {
-        // Viewport is wider than design ratio, scale by height
-        fontSize = baseFontSize * (innerHeight / designHeight)
-      } else {
-        // Viewport is narrower than design ratio, scale by width
-        fontSize = baseFontSize * (innerWidth / designWidth)
-      }
+      // Landscape：以横屏基准等比缩放
+      const { width: designWidth, height: designHeight } = landscapeBase
+      fontSize =
+        innerWidth / innerHeight > designWidth / designHeight
+          ? baseFontSize * (innerHeight / designHeight)
+          : baseFontSize * (innerWidth / designWidth)
     }
 
-    // Clamp font size to reasonable bounds
     fontSize = Math.max(minFontSize, Math.min(maxFontSize, fontSize))
 
-    // Apply to html element
-    const html = document.documentElement
     html.style.fontSize = `${fontSize}px`
-
-    // Also set CSS custom properties for additional flexibility
-    html.style.setProperty('--endspace-viewport-scale', (fontSize / baseFontSize).toString())
+    html.style.setProperty(
+      '--endspace-viewport-scale',
+      (fontSize / baseFontSize).toString()
+    )
     html.style.setProperty('--endspace-base-font-size', `${fontSize}px`)
-  }, [landscapeBase, portraitBase, baseFontSize, minFontSize, maxFontSize])
+  }, [
+    enabled,
+    landscapeBase,
+    portraitBase,
+    baseFontSize,
+    minFontSize,
+    maxFontSize
+  ])
 
   useEffect(() => {
     if (!isBrowser) return
 
-    // Apply initial scale immediately
     applyScale()
 
-    // Handle resize events
-    const handleResize = () => {
-      applyScale()
-    }
-
-    // Handle orientation change with small delay for browser to settle
-    const handleOrientationChange = () => {
-      setTimeout(() => applyScale(), 100)
-    }
+    const handleResize = () => applyScale()
+    // 旋转屏幕后等浏览器稳定再算
+    const handleOrientationChange = () => setTimeout(() => applyScale(), 100)
 
     window.addEventListener('resize', handleResize)
     window.addEventListener('orientationchange', handleOrientationChange)
 
-    // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize)
       window.removeEventListener('orientationchange', handleOrientationChange)
-      // Reset font-size on unmount
-      document.documentElement.style.fontSize = ''
-      document.documentElement.style.removeProperty('--endspace-viewport-scale')
-      document.documentElement.style.removeProperty('--endspace-base-font-size')
     }
   }, [applyScale])
 

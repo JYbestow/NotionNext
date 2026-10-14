@@ -36,7 +36,7 @@ export const BlogListArchive = ({ archiveTitle, archivePosts }) => {
             <div className="absolute left-[-1.7rem] md:left-[-2.7rem] top-1/2 -mt-1 w-2 h-2 rounded-full bg-[var(--endspace-bg-base)] border border-[var(--endspace-border-base)] group-hover:border-[var(--endspace-accent-yellow)] group-hover:bg-[var(--endspace-accent-yellow)] transition-all z-10" />
 
             <SmartLink href={`/${post.slug}`}>
-              <div className="endspace-frame p-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-[#FBFB46] transition-all group">
+              <div className="endspace-frame p-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-[#FFFA00] transition-all group">
                 
                 {/* Date Badge */}
                 <div className="flex-shrink-0 flex items-center gap-2 text-xs tech-text text-[var(--endspace-text-secondary)] md:w-32 border-r border-[var(--endspace-border-base)] pr-4 group-hover:text-black group-hover:border-black/20 transition-colors">

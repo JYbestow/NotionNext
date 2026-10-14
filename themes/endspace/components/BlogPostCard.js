@@ -1,85 +1,124 @@
 import SmartLink from '@/components/SmartLink'
 import { siteConfig } from '@/lib/config'
-import CONFIG from '../config'
 import { IconArrowRight } from '@tabler/icons-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import CONFIG from '../config'
 
 /**
- * BlogPostCard Component - Minimalist Light Industrial
- * Post card with clean design
+ * BlogPostCard —— 紧凑工业档案卡片
+ *
+ * 尺寸约束（首页密度的关键，原实现没有这些约束所以卡片被撑到 650–780px 高）：
+ * 1. 封面高度只由「卡片宽度 × ENDSPACE_CARD_THUMB_RATIO」决定。
+ *    原实现用 `w-full aspect-video` 且容器宽 896–1075px，封面单张就 503–604px 高，
+ *    占掉卡片 77% 的高度；现在封面永远是固定比例的窄条，原图再大也撑不大卡片。
+ * 2. 标题 / 摘要按配置行数截断；footer 用 margin-top:auto 贴底，
+ *    同一行的卡片高度由 grid 自动拉平，不会出现参差。
+ * 3. 封面适配 auto：图片加载后按真实比例判断 —— 比例贴合封面框才用 cover
+ *    （裁切可忽略），否则用 contain，保证技术示意图 / 公式截图 / 文字密集图
+ *    完整可读，不会被裁掉关键部分。
  */
-export const BlogPostCard = ({ post, showSummary = true }) => {
-  const showPreview = siteConfig('ENDSPACE_POST_LIST_PREVIEW', true, CONFIG)
+export const BlogPostCard = ({ post, showSummary = true, index }) => {
   const showCover = siteConfig('ENDSPACE_POST_LIST_COVER', true, CONFIG)
-  const hasCover = showCover && post.pageCoverThumbnail
+  const showPreview = siteConfig('ENDSPACE_POST_LIST_PREVIEW', true, CONFIG)
+  const fitMode = siteConfig('ENDSPACE_CARD_THUMB_FIT', 'auto', CONFIG)
+  const maxTags = siteConfig('ENDSPACE_CARD_TAGS', 3, CONFIG)
+
+  const cover = post?.pageCoverThumbnail
+  const hasCover = showCover && !!cover
+
+  const [autoFit, setAutoFit] = useState(null)
+  const fit = fitMode === 'auto' ? autoFit || 'contain' : fitMode
+  const imgRef = useRef(null)
+
+  const applyFit = useCallback(
+    img => {
+      if (fitMode !== 'auto' || !img) return
+      const box = img.parentElement
+      if (!img.naturalWidth || !img.naturalHeight || !box) return
+      const boxRatio = box.clientWidth / box.clientHeight
+      const imgRatio = img.naturalWidth / img.naturalHeight
+      if (!boxRatio || !imgRatio) return
+
+      // 阈值来自线上真实封面比例分布（12 张：最小 1.33 / 中位 1.78 / 最大 3.97）：
+      //   控制工程基础 600x151 (3.97) → cover 要裁掉 55%  ← 技术图，必须 contain
+      //   理论力学     902x309 (2.92) → 裁掉 39%          ← 同上
+      //   设计与制造II 640x480 (1.33) → 裁掉 25%          ← 方图，宁可留白不裁内容
+      //   摄影构图技巧 1080x720(1.50) → 裁掉 16%          ← 照片，cover 更好看
+      // 放宽到「任一维裁切 ≤20%」才铺满，即归一化比例落在 [0.80, 1.25]；
+      // 这样线上 10 张里 7 张 cover、3 张（恰好是最宽和最方的）contain。
+      const relative = imgRatio / boxRatio
+      setAutoFit(relative >= 0.8 && relative <= 1.25 ? 'cover' : 'contain')
+    },
+    [fitMode]
+  )
+
+  // 图片命中缓存时，load 事件可能在 React 挂上监听之前就已触发，
+  // 那样 fit 会永久停在 contain。挂载后再兜一次。
+  useEffect(() => {
+    const img = imgRef.current
+    if (img?.complete && img.naturalWidth) applyFit(img)
+  }, [applyFit, cover])
+
+  const tags = (post?.tags || []).slice(0, maxTags)
 
   return (
     <SmartLink href={`/${post.slug}`}>
-      <article className={`endspace-frame group mb-6 flex flex-col overflow-hidden relative transition-all duration-300`}>
-        
-        {/* Cover Image - Top (Full Width) */}
+      <article className='eds-card'>
         {hasCover && (
-          <div className="w-full aspect-video flex-shrink-0 relative overflow-hidden z-10 bg-black/5">
+          <div className='eds-card__thumb' data-fit={fit}>
             <img
-              src={post.pageCoverThumbnail}
-              alt={post.title}
-              className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+              ref={imgRef}
+              src={cover}
+              alt={post?.title || ''}
+              loading='lazy'
+              decoding='async'
+              onLoad={event => applyFit(event.currentTarget)}
+              className='eds-card__img'
+              style={{ objectFit: fit }}
             />
-            {/* Minimalist marker overlay */}
-            <div className="absolute top-3 right-3 w-2 h-2 bg-[var(--endspace-accent-yellow)] opacity-0 group-hover:opacity-100 transition-opacity" />
+            {typeof index === 'number' && (
+              <span className='eds-card__idx'>
+                {String(index + 1).padStart(2, '0')}
+              </span>
+            )}
           </div>
         )}
 
-        {/* Content - Bottom */}
-        <div className={`flex-1 flex flex-col justify-center relative z-10 p-5 md:p-6 overflow-hidden`}>
-          
-          {/* Hover Effect: Yellow Swoosh Background (Now confined to text area) */}
-          <div className="absolute inset-0 bg-[var(--endspace-accent-yellow)] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out z-0" />
-          
-          {/* Hover Effect: Horizontal Black Bar (Top of text area) */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20" />
-
-          {/* Wrapper for content to ensure it sits above the yellow background */}
-          <div className="relative z-10">
-          
-          {/* Top Meta */}
-          <div className="flex items-center gap-3 text-xs font-mono text-[var(--endspace-text-muted)] mb-3 group-hover:text-black/60 transition-colors">
-             <span className="text-[var(--endspace-text-primary)] font-bold group-hover:text-black transition-colors">
-                 {post.publishDay}
-             </span>
-             <span className="w-px h-3 bg-[var(--endspace-border-base)] group-hover:bg-black/30 transition-colors" />
-             {post.category && (
-                <span className="tracking-wider">{post.category.toUpperCase()}</span>
-             )}
+        <div className='eds-card__body'>
+          {/* 元信息：日期 · 分类 */}
+          <div className='eds-card__meta eds-mono'>
+            {post?.publishDay && <span>{post.publishDay}</span>}
+            {post?.publishDay && post?.category && (
+              <span className='eds-card__sep' />
+            )}
+            {post?.category && (
+              <span className='eds-card__cat'>{post.category}</span>
+            )}
           </div>
 
-          {/* Title */}
-          <h2 className="text-2xl md:text-3xl font-black text-[var(--endspace-text-primary)] mb-4 leading-tight group-hover:text-black transition-colors">
-            {post.title}
-          </h2>
+          {/* 标题 */}
+          <h2 className='eds-card__title'>{post?.title}</h2>
 
-          {/* Summary */}
-          {showSummary && showPreview && post.summary && (
-            <p className="text-[var(--endspace-text-secondary)] text-sm leading-relaxed line-clamp-2 md:line-clamp-3 mb-6 font-medium group-hover:text-black/70 transition-colors">
-              {post.summary}
-            </p>
+          {/* 摘要（Notion 未填 summary 时不占位、不产生空白） */}
+          {showSummary && showPreview && post?.summary && (
+            <p className='eds-card__summary'>{post.summary}</p>
           )}
 
-          {/* Footer / Read More */}
-          <div className="mt-auto flex items-center justify-between">
-            <div className="flex gap-2">
-                {post.tags?.slice(0,3).map(tag => (
-                    <span key={tag} className="text-[10px] text-[var(--endspace-text-muted)] bg-[var(--endspace-bg-secondary)] px-1.5 py-0.5 rounded group-hover:bg-black group-hover:text-white transition-colors">
-                        #{tag}
-                    </span>
-                ))}
+          {/* 标签 + 进入标记 */}
+          <div className='eds-card__foot'>
+            <div className='eds-card__tags'>
+              {tags.map(tag => (
+                <span key={tag} className='eds-tag'>
+                  #{tag}
+                </span>
+              ))}
             </div>
-            
-            <div className="flex items-center gap-2 text-[var(--endspace-text-primary)] text-xs font-bold uppercase tracking-wider group-hover:gap-3 transition-all group-hover:text-black">
-                <span>Access</span>
-                <IconArrowRight size={12} stroke={2} className="group-hover:translate-x-1 transition-transform group-hover:text-black" />
-            </div>
+            <span className='eds-card__go' aria-hidden='true'>
+              <span className='eds-card__go-mk'>
+                <IconArrowRight size={10} stroke={2.2} />
+              </span>
+            </span>
           </div>
-          </div> {/* End relative z-10 wrapper */}
         </div>
       </article>
     </SmartLink>

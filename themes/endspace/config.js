@@ -6,27 +6,14 @@
  * 特殊页面配置说明 (Special Pages)
  * ============================================
  * 
- * 以下页面需要在 Notion 中配置菜单(Menu)：
- * - 【AboutMe 关于我页面】- 点击侧边栏头像跳转
- * - 【Portfolio 作品集页面】- 侧边栏导航项
- * - 【Friends 友链页面】- 侧边栏导航项
- * 
- * 配置步骤：
- * 1. 在 Notion 的菜单数据库中添加一个新条目
- * 2. 设置 Type 为 Menu
- * 3. 设置 Title 为你想要的菜单名称
- * 4. 设置 Slug 为对应的路径
- * 5. 在 Notion 中创建对应的页面内容
- * 具体可参考NotionNext的帮助手册：https://docs.tangly1024.com/article/notion-next-secondary-menu
- * 
- * 示例配置：
- * | Type | Title     | Slug       |
- * |------|-----------|------------|
- * | Menu | AboutMe   | /aboutme   |
- * | Menu | Portfolio | /portfolio |
- * | Menu | Friends   | /friends   |
- * 
- * 配置完成后，Portfolio 和 Friends 会自动出现在侧边栏导航中。
+ * 以下页面的入口路径不要硬编码，统一用 siteConfig 读取，
+ * 这样在 Notion 配置表里改一个键就能生效（Notion 配置 > blog.config.js > 调用点默认值）：
+ * - 【关于我】ENDSPACE_PATH_ABOUT      默认 '/about'，点击侧边栏头像跳转
+ * - 【作品集】ENDSPACE_PATH_PORTFOLIO  默认 '/portfolio'，由 ENDSPACE_MENU_PORTFOLIO 控制是否显示
+ * - 【友链】  ENDSPACE_PATH_FRIENDS    默认 '/links'
+ *
+ * 早期版本把 '/aboutme'、'/portfolio'、'/friends' 当成了固定路径，与 Notion 里实际的
+ * slug 对不上就会 404；现已全部改为 siteConfig + 与真实 slug 一致的默认值。
  */
 
 const CONFIG = {
@@ -53,11 +40,11 @@ const CONFIG = {
   // ============================================
   ENDSPACE_COLOR_BG_BASE: '#fafafa',
   ENDSPACE_COLOR_SURFACE: '#ffffff',
-  ENDSPACE_COLOR_TEXT: '#18181b',
-  ENDSPACE_COLOR_TEXT_SECONDARY: '#52525b',
-  ENDSPACE_COLOR_ACCENT: '#FBFB45',
-  ENDSPACE_COLOR_ACCENT_DIM: 'rgba(251, 251, 69, 0.15)',
-  ENDSPACE_COLOR_BORDER: '#e4e4e7',
+  ENDSPACE_COLOR_TEXT: '#0a0a0a', // 与个人主页 --ink 同值
+  ENDSPACE_COLOR_TEXT_SECONDARY: '#5a5a5a', // 与个人主页 --gray-text 同值
+  ENDSPACE_COLOR_ACCENT: '#FFFA00', // 与个人主页 --signal 同值
+  ENDSPACE_COLOR_ACCENT_DIM: 'rgba(255, 250, 0, 0.15)',
+  ENDSPACE_COLOR_BORDER: '#d9d9d9', // 与个人主页 --line 同值
 
   // ============================================
   // 水印文字配置 (Watermark Text)
@@ -86,6 +73,38 @@ const CONFIG = {
   // ============================================
   ENDSPACE_ARTICLE_LAYOUT_VERTICAL: false, // 文章页是否使用垂直布局
   ENDSPACE_ARTICLE_ADJACENT: true, // 是否显示上一篇/下一篇文章导航
+
+  // ============================================
+  // 视觉体系 (Design System) —— 与个人主页 jybestow.github.io 统一
+  // ============================================
+  /**
+   * Endfield 式「根字号随视口等比放大」。
+   * 开启后 1920 宽屏会把根字号推到 19.2px、2560 推到上限 24px（+50%），
+   * 所有 rem 尺寸（正文宽度、封面高度、间距、字号）一起膨胀，
+   * 结果是大屏首页一屏只放得下一篇。博客是阅读型站点，默认关闭；
+   * 如果确实需要游戏官网那种整体等比缩放的观感，再打开它。
+   */
+  ENDSPACE_VIEWPORT_SCALE: false,
+
+  // ============================================
+  // 首页 / 列表页 文章网格 (Post Grid)
+  // ============================================
+  ENDSPACE_POST_GRID_COLUMNS: 3, // 宽屏(≥1100px)列数；720–1099px 固定 2 列，<720px 单列
+  ENDSPACE_LIST_MAX_WIDTH: '64rem', // 列表页正文最大宽度（文章阅读页仍保持 4xl 阅读宽度）
+  ENDSPACE_CARD_THUMB_RATIO: '16 / 9', // 卡片封面比例，只决定封面的高度上限
+  /**
+   * 封面适配策略：
+   *  auto    —— 图片加载后按真实比例判断，比例贴合封面框才用 cover，否则 contain（默认：技术图不会被裁）
+   *  cover   —— 强制铺满裁切（适合纯摄影站）
+   *  contain —— 强制完整显示，留白用底板色填充（适合示意图/公式截图为主的站点）
+   */
+  ENDSPACE_CARD_THUMB_FIT: 'auto',
+  ENDSPACE_CARD_TITLE_LINES: 2, // 标题最多显示行数
+  ENDSPACE_CARD_SUMMARY_LINES: 2, // 摘要最多显示行数
+  ENDSPACE_CARD_TAGS: 3, // 每张卡片最多显示几个标签
+  ENDSPACE_HOME_COMPACT_HEADER: true, // 列表页用紧凑身份头替代原装饰横幅
+  ENDSPACE_HOME_FILTER_BAR: true, // 列表页顶部显示分类筛选 + 搜索
+  ENDSPACE_HOME_HERO_STATS: true, // 紧凑头部显示文章数/分类数统计
 
   // ============================================
   // 浮动控件 (Floating controls)

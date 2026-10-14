@@ -13,7 +13,7 @@ export const SearchInput = ({ keyword = '', locale, compact = false, titleMeta =
   const [isFocused, setIsFocused] = useState(false)
   const inputFocusClass = compact
     ? 'focus:bg-[var(--endspace-bg-secondary)] focus:text-[var(--endspace-text-primary)] focus:border-[var(--endspace-border-base)]'
-    : 'focus:bg-black focus:text-[#FBFB46] focus:border-[var(--endspace-accent-yellow)]'
+    : 'focus:bg-black focus:text-[#FFFA00] focus:border-[var(--endspace-accent-yellow)]'
   const normalizedSearchTerm = searchTerm.trim().toLowerCase()
   const suggestions = normalizedSearchTerm
     ? allNavPages
@@ -78,7 +78,7 @@ export const SearchInput = ({ keyword = '', locale, compact = false, titleMeta =
             >
               {suggestions.map((post, index) => (
                 <SmartLink key={post.id || post.slug} href={`/${post.slug}`}>
-                  <div className="group/item flex cursor-pointer items-start gap-3 border-b border-[var(--endspace-border-base)] px-3 py-2.5 last:border-b-0 hover:bg-[#FBFB46]">
+                  <div className="group/item flex cursor-pointer items-start gap-3 border-b border-[var(--endspace-border-base)] px-3 py-2.5 last:border-b-0 hover:bg-[#FFFA00]">
                     <span className="mt-0.5 w-5 flex-shrink-0 text-[10px] font-mono text-[var(--endspace-text-muted)] group-hover/item:text-black">
                       {String(index + 1).padStart(2, '0')}
                     </span>
@@ -112,7 +112,7 @@ export const SearchInput = ({ keyword = '', locale, compact = false, titleMeta =
           {/* Search Button (Enter) */}
           <button
             type="submit"
-            className="absolute right-1 top-1 bottom-1 px-3 bg-[var(--endspace-bg-tertiary)] text-black hover:bg-[#FBFB46] hover:text-black transition-colors font-bold text-xs border-l border-[var(--endspace-border-base)]"
+            className="absolute right-1 top-1 bottom-1 px-3 bg-[var(--endspace-bg-tertiary)] text-black hover:bg-[#FFFA00] hover:text-black transition-colors font-bold text-xs border-l border-[var(--endspace-border-base)]"
           >
             GO
           </button>

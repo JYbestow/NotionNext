@@ -102,8 +102,8 @@ const FloatingToc = ({ toc }) => {
           onClick={() => setIsExpanded(!isExpanded)}
           className={`flex items-center justify-center transition-all duration-300 shadow-md cursor-pointer border hover:-translate-y-1 hover:shadow-lg relative group rounded-full ${
             isExpanded 
-              ? 'w-10 h-10 bg-[#FBFB46] text-black border-[#FBFB46] absolute -left-10 top-0' 
-              : 'w-10 h-10 bg-white text-gray-400 border-gray-200 hover:bg-[#FBFB46] hover:text-black hover:border-[#FBFB46]'
+              ? 'w-10 h-10 bg-[#FFFA00] text-black border-[#FFFA00] absolute -left-10 top-0' 
+              : 'w-10 h-10 bg-white text-gray-400 border-gray-200 hover:bg-[#FFFA00] hover:text-black hover:border-[#FFFA00]'
           }`}
           title={isExpanded ? 'Collapse TOC' : 'Expand TOC'}
         >
@@ -123,7 +123,7 @@ const FloatingToc = ({ toc }) => {
                 <IconListTree size={16} stroke={2} className="mr-2" />
                 TABLE OF CONTENTS
               </h3>
-              <div className="w-16 h-1 bg-[#FBFB46] rounded-full overflow-hidden">
+              <div className="w-16 h-1 bg-[#FFFA00] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[var(--endspace-text-primary)] transition-all duration-300 ease-out"
                   style={{ width: `${progress}%` }}

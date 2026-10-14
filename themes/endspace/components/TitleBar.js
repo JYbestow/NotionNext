@@ -1,32 +1,42 @@
-import { siteConfig } from '@/lib/config'
-import CONFIG from '../config'
+import { ListHeader } from './ListHeader'
 
 /**
- * TitleBar Component - Endfield Style (Light Industrial)
+ * TitleBar —— 页面顶部条，两种形态：
+ *
+ * 1. 列表页（首页 / 归档 / 搜索 / 分类 / 标签）：紧凑站点身份头，垂直占用约 140px。
+ *    原实现在这里渲染的是 `relative py-20 md:py-28`（上下各 80/112px 内边距）
+ *    加一行 `text-[10rem] md:text-[14rem]` 的滚动水印，整体约 400px 高：
+ *    既没有站名、也没有定位信息，只有装饰，而且是 30s 无限循环动画。
+ *
+ * 2. 文章页：保留原有的封面横幅，正文排版不受影响。
  */
-export const TitleBar = ({ post }) => {
+export const TitleBar = ({ post, postCount, categoryOptions }) => {
+  // —— 列表页：紧凑身份头（替代原装饰横幅）
+  if (!post) {
+    return (
+      <ListHeader postCount={postCount} categoryOptions={categoryOptions} />
+    )
+  }
 
-  const marqueeText = siteConfig('ENDSPACE_BANNER_WATERMARK_TEXT', 'CLOUD09_SPACE', CONFIG)
-
+  // —— 文章页：封面横幅
   return (
-    <div className="relative py-20 md:py-28 border-b-2 border-[var(--endspace-border-base)] overflow-hidden bg-[var(--endspace-bg-base)]">
-      {/* Post Cover Image Background - shown on article pages */}
-      {post && post.pageCoverThumbnail && (
-        <div className="absolute inset-0">
-          <img 
+    <div className='relative py-20 md:py-28 border-b-2 border-[var(--endspace-border-base)] overflow-hidden bg-[var(--endspace-bg-base)]'>
+      {post.pageCoverThumbnail && (
+        <div className='absolute inset-0'>
+          <img
             src={post.pageCoverThumbnail}
             alt={post.title || 'Cover'}
-            className="w-full h-full object-cover"
+            className='w-full h-full object-cover'
           />
           {/* Dark overlay for better contrast */}
-          <div className="absolute inset-0 bg-black/40" />
+          <div className='absolute inset-0 bg-black/40' />
         </div>
       )}
 
       {/* Background Pattern - Grid overlay effect */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
+      <div className='absolute inset-0 opacity-10 pointer-events-none'>
         <div
-          className="absolute inset-0"
+          className='absolute inset-0'
           style={{
             backgroundImage: `
               repeating-linear-gradient(0deg, transparent, transparent 2px, var(--endspace-text-muted) 2px, var(--endspace-text-muted) 4px),
@@ -36,45 +46,6 @@ export const TitleBar = ({ post }) => {
           }}
         />
       </div>
-
-      {/* Large Background Scrolling Watermark (only on non-article pages) */}
-      {!post && (
-        <div className="absolute inset-0 flex items-center opacity-[0.15] pointer-events-none overflow-hidden">
-          <div className="bg-watermark-scroll whitespace-nowrap leading-none">
-            <span className="text-[10rem] md:text-[14rem] font-black text-[var(--endspace-text-primary)] select-none">
-              {marqueeText}
-              <span className="mx-[5vw] text-[var(--endspace-text-muted)]">&#x2022;</span>
-              {marqueeText}
-              <span className="mx-[5vw] text-[var(--endspace-text-muted)]">&#x2022;</span>
-              {marqueeText}
-              <span className="mx-[5vw] text-[var(--endspace-text-muted)]">&#x2022;</span>
-              {marqueeText}
-              <span className="mx-[5vw] text-[var(--endspace-text-muted)]">&#x2022;</span>
-              {marqueeText}
-              <span className="mx-[5vw] text-[var(--endspace-text-muted)]">&#x2022;</span>
-              {marqueeText}
-              <span className="mx-[5vw] text-[var(--endspace-text-muted)]">&#x2022;</span>
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Marquee Animation Styles for Background Watermark */}
-      <style jsx>{`
-        .bg-watermark-scroll {
-          display: inline-block;
-          animation: bgMarquee 30s linear infinite;
-        }
-
-        @keyframes bgMarquee {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-      `}</style>
     </div>
   )
 }

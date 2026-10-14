@@ -23,31 +23,48 @@ export const Style = () => {
         --endspace-bg-secondary: #f4f4f5;
         --endspace-bg-tertiary: #e4e4e7;
 
-        /* Dark Text (High Contrast) */
-        --endspace-text-primary-light: #18181b;
+        /* Dark Text (High Contrast)
+           NOTE: 灰阶与 jybestow.github.io 的设计系统对齐（--ink / --gray-text / --gray-2）：
+           同一个人主页用 #0a0a0a 墨色 + #5a5a5a 正文灰 + #8a8a8a 次级灰，
+           原先的 #18181b / #52525b / #a1a1aa 是偏蓝的 zinc 色，与个人主页不一致。 */
+        --endspace-text-primary-light: #0a0a0a;
         --endspace-text-primary-dark: #f4f4f5;
-        --endspace-text-secondary-light: #52525b;
+        --endspace-text-secondary-light: #5a5a5a;
         --endspace-text-secondary-dark: #d4d4d8;
-        --endspace-text-primary: #18181b;
-        --endspace-text-secondary: #52525b;
-        --endspace-text-muted: #a1a1aa;
+        --endspace-text-primary: #0a0a0a;
+        --endspace-text-secondary: #5a5a5a;
+        --endspace-text-muted: #8a8a8a;
 
-        /* Accents (Subtle Industrialism) -> Converted to Yellow Suite */
-        --endspace-accent-yellow-light: #FBFB45;
-        --endspace-accent-yellow-dark: #fef08a;
-        --endspace-accent-yellow: #FBFB45;
-        --endspace-accent-yellow-dim-light: rgba(251, 251, 69, 0.15);
-        --endspace-accent-yellow-dim-dark: rgba(254, 240, 138, 0.18);
-        --endspace-accent-yellow-dim: rgba(251, 251, 69, 0.15);
-        --endspace-accent-cyan: #FBFB45; /* OVERRIDE: Cyan usage -> Yellow 500 */
-        --endspace-accent-cyan-dim: rgba(251, 251, 69, 0.1); /* OVERRIDE: Cyan dim -> Yellow dim */
+        /* Accents —— 单一信号黄，与个人主页 --signal 完全同值，无明度变体 */
+        --endspace-accent-yellow-light: #FFFA00;
+        --endspace-accent-yellow-dark: #FFFA00;
+        --endspace-accent-yellow: #FFFA00;
+        --endspace-accent-yellow-dim-light: rgba(255, 250, 0, 0.15);
+        --endspace-accent-yellow-dim-dark: rgba(255, 250, 0, 0.18);
+        --endspace-accent-yellow-dim: rgba(255, 250, 0, 0.15);
+        --endspace-accent-cyan: #FFFA00; /* OVERRIDE: Cyan usage -> Signal Yellow */
+        --endspace-accent-cyan-dim: rgba(255, 250, 0, 0.1); /* OVERRIDE: Cyan dim -> Yellow dim */
 
-        /* Borders & Lines */
-        --endspace-border-base-light: #e4e4e7;
+        /* Borders & Lines —— 对齐个人主页 --line: #d9d9d9 */
+        --endspace-border-base-light: #d9d9d9;
         --endspace-border-base-dark: #3f3f46;
-        --endspace-border-base: #e4e4e7;
-        --endspace-border-active: #FBFB45; /* Active border -> Yellow */
+        --endspace-border-base: #d9d9d9;
+        --endspace-border-active: #FFFA00; /* Active border -> Yellow */
         --endspace-grid-color: rgba(0,0,0,0.03);
+
+        /* ============================================
+           UNIFIED DESIGN TOKENS (与 jybestow.github.io 同一套体系)
+           等宽微标签 + 单一缓动曲线 + 三档时长 + 工业斜切
+           ============================================ */
+        --eds-font-mono: 'PlexMono', ui-monospace, 'SF Mono', 'Cascadia Mono',
+          Consolas, 'Liberation Mono', 'Courier New', monospace;
+        --eds-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+        --eds-d-fast: 180ms;
+        --eds-d-mid: 380ms;
+        --eds-d-slow: 760ms;
+        --eds-skew: -14deg;
+        --eds-line: #d9d9d9;
+        --eds-plate: #f4f4f5; /* 技术图 contain 时的填充底板 */
 
         /* Shadows - Enhanced 3D Depth */
         --endspace-shadow-base:
@@ -62,19 +79,16 @@ export const Style = () => {
       }
 
       /* ============================================
-         Viewport Scaling (Responsive Font Size)
-         ============================================ */
+         Root Font Size —— 固定 16px，不再随视口等比放大
+         ============================================
+         原先这里是 clamp(14px, calc(16px * (100vw / 1440)), 24px)：
+         1920 宽屏会算出 21.3px、2560 宽屏直接顶到上限 24px（+50%）。
+         Tailwind 的尺寸全是 rem，于是 max-w-4xl(56rem) 会从 896px 变成 1344px，
+         aspect-video 的封面高度随之从 504px 涨到 756px —— 首页一屏只放得下一篇。
+         博客是阅读型站点，根字号应当稳定、并尊重浏览器/用户自己的字号设置，
+         所以这里固定基准；等比缩放改为用 ENDSPACE_VIEWPORT_SCALE 显式开启。 */
       html {
-        /* CSS fallback for viewport scaling when JS not loaded */
-        /* Desktop: scale based on viewport width relative to 1440px base (larger content) */
-        font-size: clamp(14px, calc(16px * (100vw / 1440)), 24px);
-      }
-
-      /* Portrait/Mobile orientation: different scaling base */
-      @media (orientation: portrait), (max-width: 767px) {
-        html {
-          font-size: clamp(14px, calc(16px * (100vw / 390)), 20px);
-        }
+        font-size: 16px;
       }
 
       /* ============================================
@@ -148,7 +162,7 @@ export const Style = () => {
 
       .endspace-search-highlight {
         color: #a16207;
-        background: linear-gradient(90deg, rgba(251, 251, 69, 0.2), rgba(251, 191, 36, 0.35));
+        background: linear-gradient(90deg, rgba(255, 250, 0, 0.2), rgba(251, 191, 36, 0.35));
         padding: 0 0.25rem;
         box-decoration-break: clone;
         -webkit-box-decoration-break: clone;
@@ -709,7 +723,7 @@ export const Style = () => {
 
       .ef-button:hover::before {
         height: 70%;
-        background-color: #FBFB45;
+        background-color: #FFFA00;
       }
 
       /* ============================================
@@ -1060,7 +1074,7 @@ export const Style = () => {
         display: block;
         width: 4px;
         height: 18px;
-        background-color: #FBFB45; /* Yellow */
+        background-color: #FFFA00; /* Yellow */
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); /* Rectangle */
       }
@@ -1068,7 +1082,7 @@ export const Style = () => {
       .ef-btn:hover .ef-btn-indicator {
         width: 12px;
         height: 12px;
-        background-color: #FBFB45;
+        background-color: #FFFA00;
         clip-path: polygon(0 0, 100% 50%, 0 100%); /* Triangle */
       }
 
@@ -1087,8 +1101,8 @@ export const Style = () => {
       }
 
       .archive-filter-btn:hover {
-        background-color: #FBFB46 !important;
-        border-color: #FBFB46;
+        background-color: #FFFA00 !important;
+        border-color: #FFFA00;
         box-shadow: var(--endspace-shadow-hover);
       }
 
@@ -1098,6 +1112,488 @@ export const Style = () => {
 
       .archive-filter-btn:hover .ef-btn-text {
         color: #000 !important;
+      }
+
+      /* ============================================================
+         HOME / LIST —— 紧凑工业档案网格
+         与 jybestow.github.io 同一套语言：零圆角、1px 线框、单一信号黄、
+         等宽微标签、制图网格底纹、切角、克制动效。
+         ============================================================ */
+
+      /* 等宽微标签：工业标签体系的统一入口 */
+      .eds-mono {
+        font-family: var(--eds-font-mono);
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        line-height: 1.4;
+      }
+
+      /* ---------- 紧凑站点身份头（替代原先约 400px 的纯装饰横幅） ---------- */
+      .eds-hero {
+        position: relative;
+        overflow: hidden;
+        background: var(--endspace-bg-base);
+        border-bottom: 1px solid var(--endspace-border-base);
+      }
+      /* 制图网格底纹：88px 模数 + 向下渐隐 mask */
+      .eds-hero__mesh {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          repeating-linear-gradient(90deg, rgba(10, 10, 10, 0.055) 0 1px, transparent 1px 88px),
+          repeating-linear-gradient(0deg, rgba(10, 10, 10, 0.055) 0 1px, transparent 1px 88px);
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.25));
+        -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.25));
+      }
+      .dark .eds-hero__mesh {
+        background-image:
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 88px),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 88px);
+      }
+      .eds-hero__in {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin: 0 auto;
+        /* 镜像 container-wrapper 的水平内边距与内容宽度，
+           截图对比时才不会出现「头部比网格宽出几像素」的错位。
+           --eds-list-max 由 LayoutBase 按 ENDSPACE_LIST_MAX_WIDTH 写到根节点上。 */
+        max-width: calc(var(--eds-list-max, 64rem) + 2rem);
+        padding: 18px 1rem 15px;
+      }
+      @media (min-width: 768px) {
+        .eds-hero__in {
+          max-width: calc(var(--eds-list-max, 64rem) + 4rem);
+          padding-left: 2rem;
+          padding-right: 2rem;
+        }
+      }
+      @media (min-width: 1024px) {
+        .eds-hero__in {
+          max-width: calc(var(--eds-list-max, 64rem) + 6rem);
+          padding-left: 3rem;
+          padding-right: 3rem;
+        }
+      }
+      /* [01] ──── LABEL 三段式 eyebrow */
+      .eds-eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--endspace-text-secondary);
+      }
+      .eds-eyebrow__no {
+        display: inline-block;
+        background: var(--endspace-accent-yellow);
+        color: #0a0a0a;
+        padding: 2px 6px 1px;
+        transform: skewX(var(--eds-skew));
+        font-weight: 500;
+      }
+      .eds-eyebrow__no > span {
+        display: inline-block;
+        transform: skewX(calc(-1 * var(--eds-skew)));
+      }
+      .eds-eyebrow__line {
+        flex: 1;
+        height: 1px;
+        background: var(--endspace-border-base);
+      }
+      .eds-hero__title {
+        font-size: clamp(24px, 2.9vw, 40px);
+        font-weight: 900;
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+        color: var(--endspace-text-primary);
+        margin: 0;
+      }
+      .eds-hero__sub {
+        font-size: 13px;
+        line-height: 1.55;
+        color: var(--endspace-text-secondary);
+        max-width: 62ch;
+        margin: 0;
+      }
+      .eds-hero__stats {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+        color: var(--endspace-text-muted);
+        margin-top: 1px;
+      }
+      .eds-hero__stats b {
+        color: var(--endspace-text-primary);
+        font-weight: 700;
+      }
+      .eds-hero__stat-sep {
+        color: var(--endspace-border-base);
+        margin-right: 10px;
+      }
+
+      /* ---------- 分类筛选 + 搜索 ---------- */
+      .eds-filter {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 0;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--endspace-border-base);
+      }
+      .eds-filter__cats {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+      .eds-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 30px;
+        padding: 0 10px;
+        border: 1px solid var(--endspace-border-base);
+        background: transparent;
+        color: var(--endspace-text-secondary);
+        font-family: var(--eds-font-mono);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        text-decoration: none !important;
+        border-radius: 0;
+        cursor: pointer;
+        transition:
+          color var(--eds-d-fast) var(--eds-ease),
+          border-color var(--eds-d-fast) var(--eds-ease),
+          background-color var(--eds-d-fast) var(--eds-ease);
+      }
+      .eds-chip__n {
+        color: var(--endspace-text-muted);
+        font-size: 9px;
+      }
+      .eds-chip:hover {
+        color: #0a0a0a;
+        background: var(--endspace-accent-yellow);
+        border-color: var(--endspace-accent-yellow);
+      }
+      .eds-chip:hover .eds-chip__n {
+        color: rgba(10, 10, 10, 0.65);
+      }
+      .eds-chip.is-active {
+        background: var(--endspace-text-primary);
+        border-color: var(--endspace-text-primary);
+        color: var(--endspace-bg-primary);
+      }
+      .eds-chip.is-active .eds-chip__n {
+        color: var(--endspace-accent-yellow);
+      }
+      /* 紧凑搜索：复用真实的 /search/<term> 路由 */
+      .eds-search {
+        display: flex;
+        align-items: stretch;
+        flex: 0 0 auto;
+        height: 30px;
+        border: 1px solid var(--endspace-border-base);
+        background: var(--endspace-bg-primary);
+        transition: border-color var(--eds-d-fast) var(--eds-ease);
+      }
+      .eds-search:focus-within {
+        border-color: var(--endspace-text-primary);
+      }
+      .eds-search input {
+        width: 146px;
+        min-width: 0;
+        border: 0;
+        outline: none;
+        background: transparent;
+        color: var(--endspace-text-primary);
+        font-family: var(--eds-font-mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        padding: 0 8px;
+      }
+      .eds-search input::placeholder {
+        color: var(--endspace-text-muted);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .eds-search button {
+        border: 0;
+        border-left: 1px solid var(--endspace-border-base);
+        background: transparent;
+        color: var(--endspace-text-secondary);
+        font-family: var(--eds-font-mono);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        padding: 0 10px;
+        cursor: pointer;
+        transition:
+          background-color var(--eds-d-fast) var(--eds-ease),
+          color var(--eds-d-fast) var(--eds-ease);
+      }
+      .eds-search button:hover {
+        background: var(--endspace-accent-yellow);
+        color: #0a0a0a;
+      }
+
+      /* ---------- 文章网格：1 / 2 / 3 列 ---------- */
+      .eds-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+        align-items: stretch;
+      }
+      @media (min-width: 720px) {
+        .eds-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 16px;
+        }
+      }
+      @media (min-width: 1100px) {
+        .eds-grid {
+          grid-template-columns: repeat(var(--eds-cols, 3), minmax(0, 1fr));
+          gap: 18px;
+        }
+      }
+      /* 网格项是 PostGrid 的包装 div（用于承载揭示状态），
+         让它与内部的 a / article 逐层撑满行高，同排卡片才会底部对齐 */
+      .eds-grid > .eds-item {
+        display: flex;
+        min-width: 0;
+      }
+      .eds-grid > .eds-item > * {
+        display: flex;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      /* ---------- 文章卡片 ---------- */
+      .eds-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-width: 0;
+        background: var(--endspace-bg-primary);
+        border: 1px solid var(--endspace-border-base);
+        border-radius: 0;
+        overflow: hidden;
+        text-decoration: none !important;
+        transition:
+          border-color var(--eds-d-mid) var(--eds-ease),
+          transform var(--eds-d-mid) var(--eds-ease);
+      }
+      /* 顶部信号黄定位条：hover 时由左展开（替代原整块黄色横扫） */
+      .eds-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--endspace-accent-yellow);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform var(--eds-d-mid) var(--eds-ease);
+        z-index: 4;
+      }
+      .eds-card:hover {
+        border-color: var(--endspace-text-primary);
+        transform: translateY(-2px);
+      }
+      .eds-card:hover::before {
+        transform: scaleX(1);
+      }
+
+      /* 封面区：固定 16:9，高度只由卡片宽度决定，原图再大也撑不大卡片 */
+      .eds-card__thumb {
+        position: relative;
+        flex: none;
+        width: 100%;
+        aspect-ratio: var(--eds-thumb-ratio, 16 / 9);
+        overflow: hidden;
+        background: var(--eds-plate);
+        border-bottom: 1px solid var(--endspace-border-base);
+      }
+      .dark .eds-card__thumb {
+        background: #27272a;
+      }
+      .eds-card__img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        transition: transform var(--eds-d-slow) var(--eds-ease);
+      }
+      /* 只有比例真正贴合的图才做 hover 微缩放；contain 的图缩放会切边，不做 */
+      .eds-card__thumb[data-fit='cover']:hover .eds-card__img {
+        transform: scale(1.04);
+      }
+      /* 卡片序号 —— 每张卡唯一的编号装饰 */
+      .eds-card__idx {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 2;
+        font-family: var(--eds-font-mono);
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        padding: 2px 6px 1px;
+        background: var(--endspace-text-primary);
+        color: var(--endspace-bg-primary);
+      }
+      .eds-card__body {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 12px 13px 11px;
+      }
+      .eds-card__meta {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--endspace-text-muted);
+        min-width: 0;
+      }
+      .eds-card__meta > .eds-card__cat {
+        color: var(--endspace-text-secondary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .eds-card__sep {
+        width: 1px;
+        height: 9px;
+        flex: none;
+        background: var(--endspace-border-base);
+      }
+      .eds-card__title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 800;
+        line-height: 1.35;
+        letter-spacing: -0.01em;
+        color: var(--endspace-text-primary);
+        display: -webkit-box;
+        -webkit-line-clamp: var(--eds-title-lines, 2);
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .eds-card__summary {
+        margin: 0;
+        font-size: 12.5px;
+        line-height: 1.62;
+        color: var(--endspace-text-secondary);
+        display: -webkit-box;
+        -webkit-line-clamp: var(--eds-summary-lines, 2);
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .eds-card__foot {
+        margin-top: auto;
+        padding-top: 9px;
+        border-top: 1px solid var(--endspace-border-base);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-width: 0;
+      }
+      .eds-card__tags {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        min-width: 0;
+        overflow: hidden;
+      }
+      .eds-tag {
+        flex: none;
+        font-family: var(--eds-font-mono);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        color: var(--endspace-text-secondary);
+        border: 1px solid var(--endspace-border-base);
+        padding: 1px 5px;
+        white-space: nowrap;
+      }
+      .eds-card__go {
+        display: flex;
+        align-items: center;
+        flex: none;
+        color: var(--endspace-text-secondary);
+      }
+      .eds-card__go-mk {
+        width: 16px;
+        height: 16px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--endspace-border-base);
+        transition:
+          background-color var(--eds-d-fast) var(--eds-ease),
+          border-color var(--eds-d-fast) var(--eds-ease),
+          color var(--eds-d-fast) var(--eds-ease);
+      }
+      .eds-card__go-mk svg {
+        transition: transform var(--eds-d-mid) var(--eds-ease);
+      }
+      .eds-card:hover .eds-card__go {
+        color: var(--endspace-text-primary);
+      }
+      .eds-card:hover .eds-card__go-mk {
+        background: var(--endspace-accent-yellow);
+        border-color: var(--endspace-accent-yellow);
+        color: #0a0a0a;
+      }
+      .eds-card:hover .eds-card__go-mk svg {
+        transform: translateX(2px);
+      }
+
+      /* ---------- 入场揭示 ----------
+         渐进增强：只有 JS 给网格挂上 data-reveal="on" 才隐藏，
+         JS 失效时内容默认可见，绝不会被藏起来。 */
+      .eds-grid[data-reveal='on'] > * {
+        opacity: 0;
+        transform: translateY(14px);
+        transition:
+          opacity var(--eds-d-slow) var(--eds-ease),
+          transform var(--eds-d-slow) var(--eds-ease);
+        transition-delay: var(--eds-rv-delay, 0ms);
+      }
+      .eds-grid[data-reveal='on'] > *.is-in {
+        opacity: 1;
+        transform: none;
+      }
+
+      /* ---------- 动效降级 ---------- */
+      @media (prefers-reduced-motion: reduce) {
+        .eds-card,
+        .eds-card__img,
+        .eds-card::before,
+        .eds-card__go-mk,
+        .eds-card__go-mk svg,
+        .eds-chip,
+        .eds-search,
+        .eds-search button,
+        .eds-grid[data-reveal='on'] > * {
+          transition-duration: 1ms !important;
+        }
+        .eds-card:hover {
+          transform: none;
+        }
+        .eds-grid[data-reveal='on'] > * {
+          opacity: 1 !important;
+          transform: none !important;
+        }
       }
 
       ${themeConsoleStyle('endspace', CONFIG)}

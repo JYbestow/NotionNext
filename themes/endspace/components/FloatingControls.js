@@ -81,7 +81,7 @@ const FloatingControls = ({ toc, ...props }) => {
     >
       <div 
         className={`w-full h-full rounded-full flex items-center justify-center transition-colors duration-200 ${
-            active ? 'bg-[#FBFB46]' : 'bg-transparent group-hover:bg-[#FBFB46]'
+            active ? 'bg-[#FFFA00]' : 'bg-transparent group-hover:bg-[#FFFA00]'
         }`}
       >
         {showPercent ? (
@@ -158,7 +158,7 @@ const FloatingControls = ({ toc, ...props }) => {
                                 <a
                                   key={id}
                                   href={`#${id}`}
-                                  className={`block py-1 text-xs transition-colors rounded px-2 -mx-2 ${isActive ? 'text-black font-bold bg-[#FBFB46]/10' : 'text-gray-500 hover:text-black hover:bg-white'}`}
+                                  className={`block py-1 text-xs transition-colors rounded px-2 -mx-2 ${isActive ? 'text-black font-bold bg-[#FFFA00]/10' : 'text-gray-500 hover:text-black hover:bg-white'}`}
                                   style={{ paddingLeft: `${(t.indentLevel || 0) * 12 + 8}px` }}
                                   onClick={() => {
                                       // Optional: Close on click for mobile?

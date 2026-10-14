@@ -1,16 +1,12 @@
-import { BlogPostCard } from './BlogPostCard'
+import { PostGrid } from './PostGrid'
 
 /**
- * BlogListScroll Component - Infinite Scroll List
+ * BlogListScroll Component - 无限滚动文章列表（紧凑工业网格）
  */
 export const BlogListScroll = ({ posts = [] }) => {
   return (
-    <div className="w-full">
-      <div id="posts-wrapper">
-        {posts?.map((post) => (
-          <BlogPostCard key={post.id} post={post} showSummary={true} />
-        ))}
-      </div>
+    <div className='w-full'>
+      <PostGrid posts={posts} />
     </div>
   )
 }

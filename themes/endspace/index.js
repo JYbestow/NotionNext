@@ -11,9 +11,10 @@ import { Transition } from '@headlessui/react'
 import { useRouter } from 'next/router'
 import { useEffect, useRef } from 'react'
 import BlogListArchive from './components/BlogListArchive'
-import { BlogPostCard } from './components/BlogPostCard'
 import { BlogListPage } from './components/BlogListPage'
 import { BlogListScroll } from './components/BlogListScroll'
+import { ListFilterBar } from './components/ListHeader'
+import { PostGrid } from './components/PostGrid'
 import { Footer } from './components/Footer'
 import { PostLock } from './components/PostLock'
 import { PostMeta } from './components/PostMeta'
@@ -52,8 +53,29 @@ const LayoutBase = (props) => {
   // Loading animation
   const LOADING_COVER = siteConfig('ENDSPACE_LOADING_COVER', true, CONFIG)
 
-  // Viewport scale - Endfield style (using hook default params: 1920x1080 landscape / 390x844 portrait)
-  useViewportScale()
+  // 列表页 vs 文章页：列表页需要更宽的容器承载 3 列网格，
+  // 文章阅读页保持 56rem(4xl) —— 中文长行的阅读体验会显著变差。
+  const router = useRouter()
+  const pathname = router.pathname || ''
+  const isListPage =
+    !post &&
+    (pathname === '/' ||
+      pathname.startsWith('/archive') ||
+      pathname.startsWith('/search') ||
+      pathname.startsWith('/category') ||
+      pathname.startsWith('/tag'))
+  const listMaxWidth = siteConfig('ENDSPACE_LIST_MAX_WIDTH', '64rem', CONFIG)
+
+  // Viewport scale - Endfield style（默认关闭）
+  // 原先这里是无条件调用：1920 宽屏会把根字号推到 19.2px、2560 推到 24px 上限（+50%），
+  // 所有 rem 尺寸（正文宽度、封面高度、间距、字号）一起膨胀，
+  // 结果是大屏首页一屏只放得下一篇。博客是阅读型站点，默认固定 16px。
+  const ENABLE_VIEWPORT_SCALE = siteConfig(
+    'ENDSPACE_VIEWPORT_SCALE',
+    false,
+    CONFIG
+  )
+  useViewportScale({ enabled: ENABLE_VIEWPORT_SCALE })
 
   const nestHostRef = useRef(null)
   useEffect(() => {
@@ -69,6 +91,7 @@ const LayoutBase = (props) => {
     <div
       id="theme-endspace"
       className={`${siteConfig('FONT_STYLE')} min-h-screen relative`}
+      style={{ '--eds-list-max': listMaxWidth }}
     >
       <Style />
 
@@ -107,15 +130,20 @@ const LayoutBase = (props) => {
         <div id="container-inner" className="w-full relative z-10 flex-grow">
           <div
             id="container-wrapper"
-            className="relative mx-auto justify-center md:flex py-8 px-4 md:px-8 lg:px-12 max-w-screen-xl xl:max-w-screen-2xl items-start"
+            className="relative mx-auto justify-center md:flex py-6 px-4 md:px-8 lg:px-12 max-w-screen-xl xl:max-w-screen-2xl items-start"
           >
-            {/* Main content - Centered */}
+            {/* Main content - Centered
+                列表页用 ENDSPACE_LIST_MAX_WIDTH（默认 64rem）承载网格，
+                文章页固定 56rem（Tailwind 4xl）的阅读宽度 */}
             <div
-              className={`${
+              className={`${fullWidth ? 'w-full' : 'w-full mx-auto'}`}
+              style={
                 fullWidth
-                  ? 'w-full'
-                  : 'max-w-4xl w-full mx-auto'
-              }`}
+                  ? undefined
+                  : isListPage
+                    ? { maxWidth: listMaxWidth }
+                    : { maxWidth: '56rem' }
+              }
             >
               <Transition
                 show={!onLoading}
@@ -156,7 +184,16 @@ const LayoutBase = (props) => {
  * @returns
  */
 const LayoutIndex = (props) => {
-  return <LayoutPostList {...props} />
+  const { categoryOptions = [] } = props
+  const showFilter = siteConfig('ENDSPACE_HOME_FILTER_BAR', true, CONFIG)
+
+  return (
+    <>
+      {/* 分类筛选 + 紧凑搜索：都走现有真实路由（/category/<name>、/search/<term>） */}
+      {showFilter && <ListFilterBar categoryOptions={categoryOptions} />}
+      <LayoutPostList {...props} />
+    </>
+  )
 }
 
 /**
@@ -272,7 +309,7 @@ const Layout404 = (props) => {
       <div className="endspace-card p-12 text-center tech-corner max-w-2xl mx-auto">
         <div className="mb-8">
           <div className="relative flex justify-center items-center mb-6">
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-[#FBFB46] opacity-90 pointer-events-none" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-[#FFFA00] opacity-90 pointer-events-none" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
              <div className="relative text-8xl font-black text-black z-10">
                404
              </div>
@@ -340,14 +377,8 @@ const LayoutSearch = (props) => {
       <div className="mb-8">
         <SearchInput {...props} />
       </div>
-      {/* Search results list - no pagination */}
-      <div className="w-full">
-        <div id="posts-wrapper">
-          {posts?.map((post) => (
-            <BlogPostCard key={post.id} post={post} showSummary={true} />
-          ))}
-        </div>
-      </div>
+      {/* Search results list - no pagination（保持 #posts-wrapper，搜索高亮依赖它） */}
+      <PostGrid posts={posts} />
     </>
   )
 }

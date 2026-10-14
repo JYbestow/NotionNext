@@ -19,13 +19,13 @@ const DEFAULT_DARK = {
 const THEME_COLOR_DEFAULTS = {
   commerce: { PRIMARY: '#D2232A', BG: '#f5f5f5' },
   endspace: {
-    PRIMARY: '#FBFB45',
+    PRIMARY: '#FFFA00',
     BG: '#fafafa',
     CARD: '#ffffff',
     TEXT: '#18181b',
     TEXT_SECONDARY: '#52525b',
     BORDER: '#e4e4e7',
-    PRIMARY_DARK: '#fef08a',
+    PRIMARY_DARK: '#FFFA00',
     BG_DARK: '#09090b',
     CARD_DARK: '#18181b',
     TEXT_DARK: '#f4f4f5',

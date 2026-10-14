@@ -100,7 +100,7 @@ const MobileToc = ({ toc }) => {
          className="fixed right-4 bottom-24 z-40 md:hidden 
                    w-10 h-10 flex items-center justify-center shadow-md cursor-pointer border rounded-full 
                    bg-white text-gray-400 border-gray-200
-                   hover:bg-[#FBFB46] hover:text-black hover:border-[#FBFB46] hover:shadow-lg hover:-translate-y-1
+                   hover:bg-[#FFFA00] hover:text-black hover:border-[#FFFA00] hover:shadow-lg hover:-translate-y-1
                    transition-all duration-300 group"
         title="Table of Contents"
       >
@@ -129,7 +129,10 @@ const MobileToc = ({ toc }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--endspace-border-base)] bg-white">
           <div className="flex items-center gap-3">
-            <ListCheck2Icon size={16} className="text-[#FBFB46]" />
+            {/* 黄色图标画在白色头部上对比度约 1.07:1，几乎不可见；改为黄底黑图标方块 */}
+            <span className="inline-grid place-items-center w-4 h-4 shrink-0 bg-[var(--endspace-accent-yellow)] text-black">
+              <ListCheck2Icon size={11} />
+            </span>
             <span className="text-sm font-mono font-bold text-black uppercase">TOC INDEX</span>
             <span className="text-xs font-mono text-gray-400">{toc.length} sections</span>
           </div>
@@ -144,7 +147,7 @@ const MobileToc = ({ toc }) => {
         {/* Progress Bar */}
         <div className="h-1 bg-gray-100">
           <div 
-            className="h-full bg-[#FBFB46] transition-all duration-150"
+            className="h-full bg-[#FFFA00] transition-all duration-150"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -167,7 +170,7 @@ const MobileToc = ({ toc }) => {
                   onClick={() => handleItemClick(id)}
                   className={`w-full text-left py-3 px-4 text-sm transition-all duration-200 border-l-2 ${
                     isActive 
-                      ? 'border-[#FBFB46] text-black font-bold bg-[#FBFB46]/10' 
+                      ? 'border-[#FFFA00] text-black font-bold bg-[#FFFA00]/10' 
                       : 'border-transparent text-gray-500 hover:text-black hover:bg-white'
                   }`}
                   style={{ 

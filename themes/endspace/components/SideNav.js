@@ -199,7 +199,9 @@ export const SideNav = (props) => {
         </SmartLink>
         {/* Author Info - shown when expanded, fills the reserved space below avatar */}
         <div className={`mt-3 text-center transition-all duration-300 overflow-hidden ${isHovered ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0'}`}>
-          <SmartLink href={siteConfig('ENDSPACE_PATH_ABOUT', '/about', CONFIG)} className="hover:text-[var(--endspace-accent-yellow)] transition-colors">
+          {/* 原先 hover 把文字变黄 —— 黄字在浅色侧栏上不可读；
+              改成黑色文字 + 黄色下划线，强调色只承担线条 */}
+          <SmartLink href={siteConfig('ENDSPACE_PATH_ABOUT', '/about', CONFIG)} className="hover:underline decoration-[var(--endspace-accent-yellow)] decoration-2 underline-offset-4 transition-colors">
             <div className="text-sm font-bold text-[var(--endspace-text-primary)] uppercase tracking-wider">
               {siteConfig('AUTHOR') || ''}
             </div>

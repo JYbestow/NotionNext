@@ -31,8 +31,8 @@ const FloatingRecentLogs = (props) => {
           onClick={() => setIsExpanded(!isExpanded)}
           className={`flex items-center justify-center transition-all duration-300 shadow-md cursor-pointer border hover:-translate-y-1 hover:shadow-lg z-20 relative rounded-full ${
             isExpanded 
-              ? 'w-10 h-10 bg-[#FBFB46] text-black border-[#FBFB46]' 
-              : 'w-10 h-10 bg-white text-gray-400 border-gray-200 hover:bg-[#FBFB46] hover:text-black hover:border-[#FBFB46]'
+              ? 'w-10 h-10 bg-[#FFFA00] text-black border-[#FFFA00]' 
+              : 'w-10 h-10 bg-white text-gray-400 border-gray-200 hover:bg-[#FFFA00] hover:text-black hover:border-[#FFFA00]'
           }`}
           title={isExpanded ? 'Collapse Sidebar' : 'Show Recent Logs'}
         >

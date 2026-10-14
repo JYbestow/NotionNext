@@ -20,7 +20,11 @@ export const SideBar = (props) => {
         <div className="p-2">
           {showTitle && (
             <h3 className="text-[var(--endspace-text-muted)] font-mono text-xs font-bold mb-6 tracking-widest uppercase flex items-center gap-2">
-              <TimeFillIcon size={14} className="text-[var(--endspace-accent-yellow)]" />
+              {/* 黄色当图标色画在白底上对比度只有约 1.07:1，等于看不见；
+                  改成黄底黑图标的小方块，既保留强调色又可读 */}
+              <span className="inline-grid place-items-center w-4 h-4 shrink-0 bg-[var(--endspace-accent-yellow)] text-black">
+                <TimeFillIcon size={10} />
+              </span>
               Recent Logs
             </h3>
           )}
@@ -49,7 +53,9 @@ export const SideBar = (props) => {
       {categories && categories.length > 0 && (
         <div className="p-2">
            <h3 className="text-[var(--endspace-text-muted)] font-mono text-xs font-bold mb-6 tracking-widest uppercase flex items-center gap-2">
-            <FolderFillIcon size={14} className="text-[var(--endspace-accent-yellow)]" />
+            <span className="inline-grid place-items-center w-4 h-4 shrink-0 bg-[var(--endspace-accent-yellow)] text-black">
+              <FolderFillIcon size={10} />
+            </span>
             Data Types
           </h3>
           <div className="flex flex-col gap-2">
@@ -62,7 +68,7 @@ export const SideBar = (props) => {
                 <span className="text-sm text-[var(--endspace-text-secondary)] group-hover:text-[var(--endspace-text-primary)] transition-colors">
                   {category.name}
                 </span>
-                <span className="text-xs font-mono text-[var(--endspace-text-muted)] bg-[var(--endspace-bg-secondary)] px-2 py-0.5 rounded-full">
+                <span className="text-xs font-mono text-[var(--endspace-text-muted)] bg-[var(--endspace-bg-secondary)] px-2 py-0.5">
                   {category.count}
                 </span>
               </SmartLink>
@@ -75,7 +81,9 @@ export const SideBar = (props) => {
       {tags && tags.length > 0 && (
         <div className="p-2">
           <h3 className="text-[var(--endspace-text-muted)] font-mono text-xs font-bold mb-6 tracking-widest uppercase flex items-center gap-2">
-            <PriceTag3FillIcon size={14} className="text-[var(--endspace-accent-yellow)]" />
+            <span className="inline-grid place-items-center w-4 h-4 shrink-0 bg-[var(--endspace-accent-yellow)] text-black">
+              <PriceTag3FillIcon size={10} />
+            </span>
             Keywords
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -83,7 +91,7 @@ export const SideBar = (props) => {
               <SmartLink
                 key={tag.name}
                 href={`/tag/${encodeURIComponent(tag.name)}`}
-                className="px-3 py-1.5 text-xs font-medium bg-[var(--endspace-bg-secondary)] text-[var(--endspace-text-secondary)] hover:bg-[var(--endspace-text-primary)] hover:text-white transition-all rounded-sm"
+                className="px-3 py-1.5 text-xs font-medium bg-[var(--endspace-bg-secondary)] text-[var(--endspace-text-secondary)] hover:bg-[var(--endspace-text-primary)] hover:text-white transition-all"
               >
                 {tag.name}
               </SmartLink>
