@@ -107,40 +107,27 @@ const CONFIG = {
   ENDSPACE_HOME_HERO_STATS: true, // 紧凑头部显示文章数/分类数统计
 
   /**
-   * 封面覆盖表：post.id（或 post.slug）-> 图片直链。
+   * 封面覆盖表（逃生舱，默认空）：post.id 或 post.slug -> 图片直链。
    *
-   * 用途：Notion 里的封面若指向已失效的图源，卡片和文章横幅都会中招。
-   * 有了这张表，不改 Notion 也能修；键用 Notion 的 page id，所以以后即使
-   * 改了 POST_URL_PREFIX / 分类映射导致 slug 变化，这里依然命中。
+   * 正常情况**不要**用这张表——封面应该由 Notion 里的 page cover 决定，
+   * 否则这里会遮蔽你在 Notion 的改动，改成两边对不上。
    *
-   * 线上 12 篇里实测有 3 篇封面失效，都已在这里替换：
-   *   液压I       307aece6-ce4c-80d3-82c2-fbd95693ae55
-   *     原图是 Bing 缩略图缓存 -> 搜狐 CDN 的 gif，已失效（504）
-   *   运动生物力学  1d7aece6-ce4c-80c3-b596-c67427678e0a
-   *     原图是期刊站 pubs-data.cstam.org.cn，拒绝抓取（504）
-   *   origin绘图   10aaece6-ce4c-8088-9a26-c9f6d061eeb7
-   *     原图是 upload.wikimedia.org/wikipedia/commons/thumb/...（400）
-   *     —— Wikimedia 现在只在 thumb.wikimedia.org 提供缩略图，旧主机上
-   *        所有 thumb 路径一律 400；原图直链仍可用。这就是该封面挂掉的根因。
+   * 它存在的唯一理由是：Notion 的封面指向了外部图源，而那个图源挂了、
+   * 你一时又不想去 Notion 改。填在这里可以立刻生效（键用 page id，
+   * 所以以后改 POST_URL_PREFIX / 分类映射导致 slug 变化也不会失效）。
    *
-   * 替换图源全部来自 Wikimedia Commons，授权都是 CC0（无署名义务），
-   * 且比例都接近 16:9，能整块填满卡片、几乎不裁切：
-   *   Hydraulic jackhammers - robot.jpg   2419x1360  1.78 ≈ 16:9  零裁切
-   *   Relay runner (Unsplash).jpg         3481x2321  1.50        裁 16%
-   *   Goodhart scatterplot.png            1964x1000  1.96        裁 9%
-   * 用的是 960px 缩略图（不是动辄几 MB 的原图），单张 128-226KB。
+   * 已经踩过的坑，留档：
+   *   - Wikimedia 现在只在 thumb.wikimedia.org 提供缩略图；
+   *     旧的 upload.wikimedia.org/wikipedia/commons/thumb/... 对任何尺寸都返回 400，
+   *     而同一文件的原图直链仍然 200。站上有一张封面就是这么挂的。
+   *   - 期刊站（如 pubs-data.cstam.org.cn）、Bing 缩略图缓存、搜狐 CDN
+   *     这些图源都不稳定，随时可能 404/504。
    *
-   * 想换回 Notion 的封面：删掉对应键即可；若 Notion 封面仍然失效，
-   * 卡片会自动落到主题自绘的工业底板（见 style.js 的 .eds-card__thumb--blank）。
+   * 另外：即使 Notion 没有封面、或者外链加载失败，卡片也不会留空框，
+   * 而是渲染主题自绘的工业底板（见 style.js 的 .eds-card__thumb--blank），
+   * 以及 BlogPostCard 里的 onError 兜底。
    */
-  ENDSPACE_COVER_OVERRIDES: {
-    '307aece6-ce4c-80d3-82c2-fbd95693ae55':
-      'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4f/Hydraulic_jackhammers_-_robot.jpg/960px-Hydraulic_jackhammers_-_robot.jpg',
-    '1d7aece6-ce4c-80c3-b596-c67427678e0a':
-      'https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/Relay_runner_%28Unsplash%29.jpg/960px-Relay_runner_%28Unsplash%29.jpg',
-    '10aaece6-ce4c-8088-9a26-c9f6d061eeb7':
-      'https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Goodhart_scatterplot.png/960px-Goodhart_scatterplot.png'
-  },
+  ENDSPACE_COVER_OVERRIDES: {},
 
   // ============================================
   // 浮动控件 (Floating controls)
