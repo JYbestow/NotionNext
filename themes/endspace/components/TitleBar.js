@@ -1,4 +1,5 @@
 import { ListHeader } from './ListHeader'
+import { getPostCover } from './getCover'
 
 /**
  * TitleBar —— 页面顶部条，两种形态：
@@ -19,14 +20,19 @@ export const TitleBar = ({ post, postCount, categoryOptions }) => {
   }
 
   // —— 文章页：封面横幅
+  const cover = getPostCover(post)
   return (
     <div className='relative py-20 md:py-28 border-b-2 border-[var(--endspace-border-base)] overflow-hidden bg-[var(--endspace-bg-base)]'>
-      {post.pageCoverThumbnail && (
+      {cover && (
         <div className='absolute inset-0'>
           <img
-            src={post.pageCoverThumbnail}
+            src={cover}
             alt={post.title || 'Cover'}
             className='w-full h-full object-cover'
+            // 图源失效时直接隐藏，让下面的网格底纹顶上，避免出现"破图"图标
+            onError={event => {
+              event.currentTarget.style.display = 'none'
+            }}
           />
           {/* Dark overlay for better contrast */}
           <div className='absolute inset-0 bg-black/40' />

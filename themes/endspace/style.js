@@ -1450,6 +1450,83 @@ export const Style = () => {
         background: var(--endspace-text-primary);
         color: var(--endspace-bg-primary);
       }
+      /* 封面缺失 / 图源失效时的自绘底板：不引入任何外部图片，
+         用细网格 + 幽灵编号 + 黄色方块标记，保持与个人主页一致的工业档案语气。
+         线上 12 篇里已有 3 张封面图源失效（404/400/504），没有兜底就会留一个空框。 */
+      .eds-card__thumb--blank {
+        display: block;
+      }
+      .eds-blank__mesh {
+        position: absolute;
+        inset: 0;
+        background-image: repeating-linear-gradient(
+            90deg,
+            rgba(10, 10, 10, 0.06) 0 1px,
+            transparent 1px 20px
+          ),
+          repeating-linear-gradient(
+            0deg,
+            rgba(10, 10, 10, 0.05) 0 1px,
+            transparent 1px 20px
+          );
+        -webkit-mask-image: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.85),
+          rgba(0, 0, 0, 0.3)
+        );
+        mask-image: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.85),
+          rgba(0, 0, 0, 0.3)
+        );
+      }
+      .dark .eds-blank__mesh {
+        background-image: repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.07) 0 1px,
+            transparent 1px 20px
+          ),
+          repeating-linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0.055) 0 1px,
+            transparent 1px 20px
+          );
+      }
+      .eds-blank__mk {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        width: 7px;
+        height: 7px;
+        background: var(--endspace-accent-yellow);
+      }
+      .eds-blank__cat {
+        position: absolute;
+        left: 26px;
+        top: 9px;
+        max-width: calc(100% - 78px);
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: 10px;
+        line-height: 1.7;
+        color: var(--endspace-text-secondary);
+      }
+      .eds-blank__num {
+        position: absolute;
+        right: 10px;
+        bottom: 2px;
+        font-size: 40px;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(10, 10, 10, 0.22);
+        paint-order: stroke fill;
+      }
+      .dark .eds-blank__num {
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.24);
+      }
       .eds-card__body {
         display: flex;
         flex-direction: column;

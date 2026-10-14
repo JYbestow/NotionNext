@@ -3,6 +3,7 @@ import { siteConfig } from '@/lib/config'
 import { IconArrowRight } from '@tabler/icons-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import CONFIG from '../config'
+import { getPostCover } from './getCover'
 
 /**
  * BlogPostCard —— 紧凑工业档案卡片
@@ -23,10 +24,10 @@ export const BlogPostCard = ({ post, showSummary = true, index }) => {
   const fitMode = siteConfig('ENDSPACE_CARD_THUMB_FIT', 'auto', CONFIG)
   const maxTags = siteConfig('ENDSPACE_CARD_TAGS', 3, CONFIG)
 
-  const cover = post?.pageCoverThumbnail
-  const hasCover = showCover && !!cover
+  const cover = getPostCover(post)
 
   const [autoFit, setAutoFit] = useState(null)
+  const [imgFailed, setImgFailed] = useState(false)
   const fit = fitMode === 'auto' ? autoFit || 'contain' : fitMode
   const imgRef = useRef(null)
 
@@ -64,25 +65,43 @@ export const BlogPostCard = ({ post, showSummary = true, index }) => {
   return (
     <SmartLink href={`/${post.slug}`}>
       <article className='eds-card'>
-        {hasCover && (
-          <div className='eds-card__thumb' data-fit={fit}>
-            <img
-              ref={imgRef}
-              src={cover}
-              alt={post?.title || ''}
-              loading='lazy'
-              decoding='async'
-              onLoad={event => applyFit(event.currentTarget)}
-              className='eds-card__img'
-              style={{ objectFit: fit }}
-            />
-            {typeof index === 'number' && (
-              <span className='eds-card__idx'>
-                {String(index + 1).padStart(2, '0')}
+        {showCover &&
+          (cover && !imgFailed ? (
+            <div className='eds-card__thumb' data-fit={fit}>
+              <img
+                ref={imgRef}
+                src={cover}
+                alt={post?.title || ''}
+                loading='lazy'
+                decoding='async'
+                onLoad={event => applyFit(event.currentTarget)}
+                // 图源失效（被删 / 防盗链 / 拒绝抓取）时不留一个空框，
+                // 换成主题自绘的工业档案底板。线上 12 篇封面里已有 3 张图源挂掉。
+                onError={() => setImgFailed(true)}
+                className='eds-card__img'
+                style={{ objectFit: fit }}
+              />
+              {typeof index === 'number' && (
+                <span className='eds-card__idx'>
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className='eds-card__thumb eds-card__thumb--blank'>
+              <span className='eds-blank__mesh' aria-hidden='true' />
+              <span className='eds-blank__mk' aria-hidden='true' />
+              <span className='eds-blank__cat eds-mono'>
+                {post?.category || 'NO COVER'}
               </span>
-            )}
-          </div>
-        )}
+              <span className='eds-blank__num eds-mono' aria-hidden='true'>
+                {String((typeof index === 'number' ? index : 0) + 1).padStart(
+                  3,
+                  '0'
+                )}
+              </span>
+            </div>
+          ))}
 
         <div className='eds-card__body'>
           {/* 元信息：日期 · 分类 */}
