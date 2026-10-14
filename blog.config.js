@@ -17,9 +17,9 @@ const BLOG = {
   APPEARANCE_DARK_TIME: process.env.NEXT_PUBLIC_APPEARANCE_DARK_TIME || [18, 6], // 夜间模式起至时间，false时关闭根据时间自动切换夜间模式
 
   AUTHOR: process.env.NEXT_PUBLIC_AUTHOR || '嘎嘎sama', // 您的昵称 例如 tangly1024
-  BIO: process.env.NEXT_PUBLIC_BIO || '机械工程 · 课程笔记 / 实用工具 / 摄影', // 作者简介
+  BIO: process.env.NEXT_PUBLIC_BIO || '浙江大学机械工程本博 · 记录课程笔记与工具折腾', // 作者简介（Notion Config 里的 BIO 优先级更高）
   LINK: process.env.NEXT_PUBLIC_LINK || 'https://gagasama.vercel.app', // 网站地址
-  KEYWORDS: process.env.NEXT_PUBLIC_KEYWORD || '机械工程, 课程笔记, 学习笔记, Matlab, STM32, Typst, 实用工具, 摄影', // 网站关键词 英文逗号隔开
+  KEYWORDS: process.env.NEXT_PUBLIC_KEYWORD || '嘎嘎sama,今予,浙江大学,机械工程,课程笔记,学习笔记,Matlab,STM32,Typst,实用工具,摄影', // 网站关键词 英文逗号隔开（Notion Config 里的 KEYWORDS 优先级更高）
   BLOG_FAVICON: process.env.NEXT_PUBLIC_FAVICON || '/favicon.ico', // blog favicon 配置, 默认使用 /public/favicon.ico，支持在线图片，如 https://img.imesong.com/favicon.png
   PWA_ENABLE: process.env.NEXT_PUBLIC_PWA_ENABLE || false, // 是否启用 PWA 安装入口；也可在 Notion_Config 中配置 PWA_ENABLE=true
   PWA_NAME: process.env.NEXT_PUBLIC_PWA_NAME || '', // PWA 安装名称；默认读取站点标题，通常无需单独配置
