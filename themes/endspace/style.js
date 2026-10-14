@@ -1978,9 +1978,12 @@ export const Style = () => {
         background: var(--eds-plate);
       }
       /* react-notion-x 给 pdf 块套了两层壳：外层 figure，里面一层 padding 8/16 的
-         匿名 div，且这个 div 带 inline width:543.5px（按 Notion 里存的块宽算的），
-         于是 <object> 被卡在 512px——而阅读栏有 798px，讲义字号被压得看不清。
-         内联样式只能用 !important 盖，所以这里必须带 !important。
+         匿名 div，且这个 div 带 inline width:543.5px（按 Notion 里存的块宽算的）
+         与 inline height:320px、overflow:auto，于是 <object> 既被卡在 512px 宽，
+         又被 320px 的壳裁掉一大截——而阅读栏有 798px、查看器本身按 85vh（手机 70vh）
+         渲染，桌面实测 764x765、手机 290x591，被 320px 的壳切掉 445px / 265px，
+         用户只能看到查看器顶部一条、甚至只有一片灰底。
+         内联样式只能用 !important 盖，所以 width/height/overflow 都必须带 !important。
          只作用于 -pdf，不影响图片和其它 asset。 */
       .notion-asset-wrapper-pdf {
         display: block;
@@ -1988,6 +1991,8 @@ export const Style = () => {
       .notion-asset-wrapper-pdf > div {
         width: 100% !important;
         max-width: none !important;
+        height: auto !important;
+        overflow: visible !important;
       }
       .eds-pdf__bar {
         display: flex;
