@@ -162,6 +162,8 @@ const NotionPage = ({ post, className }) => {
     const onScrollCapture = event => {
       const el = event.target
       if (!el || typeof el.getAttribute !== 'function') return
+      // 顺带复查（节流）：字体/图片/折叠面板到位后元素宽度会变，标记跟着自我修复
+      scheduleRemeasure()
       if (el.getAttribute('data-eds-xscroll') !== '1') return
       const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4
       if (atEnd) {
@@ -169,6 +171,16 @@ const NotionPage = ({ post, className }) => {
       } else {
         el.removeAttribute('data-eds-xscroll-end')
       }
+    }
+
+    // 节流复查：滚动 / 点击（展开折叠面板）/ 改变窗口宽度后重新测量横向溢出
+    let remeasureTimer = null
+    const scheduleRemeasure = () => {
+      if (remeasureTimer) return
+      remeasureTimer = window.setTimeout(() => {
+        remeasureTimer = null
+        markScrollable()
+      }, 400)
     }
 
     // 4) 被固定宽度压小的图片：Notion 源数据给图片块设了 block_width（例如摄影页
@@ -210,6 +222,8 @@ const NotionPage = ({ post, className }) => {
     root.addEventListener('error', onImgError, true)
     root.addEventListener('load', onImgLoad, true)
     root.addEventListener('scroll', onScrollCapture, true)
+    root.addEventListener('click', scheduleRemeasure, true)
+    window.addEventListener('resize', scheduleRemeasure)
     // 图片与公式是异步到位/懒加载的，多补几次测量
     const timers = [400, 1500, 3500].map(delay =>
       window.setTimeout(enhance, delay)
@@ -219,6 +233,9 @@ const NotionPage = ({ post, className }) => {
       root.removeEventListener('error', onImgError, true)
       root.removeEventListener('load', onImgLoad, true)
       root.removeEventListener('scroll', onScrollCapture, true)
+      root.removeEventListener('click', scheduleRemeasure, true)
+      window.removeEventListener('resize', scheduleRemeasure)
+      if (remeasureTimer) window.clearTimeout(remeasureTimer)
       timers.forEach(timer => window.clearTimeout(timer))
     }
   }, [post])
