@@ -662,6 +662,16 @@ export const Style = () => {
         box-shadow: inset -26px 0 22px -20px rgba(0, 0, 0, 0.7);
       }
 
+      /* 深色代码块上暗色内阴影不可辨，补一层浅色渐隐；浅色表格不受影响 */
+      #notion-article pre[data-eds-xscroll='1']:not([data-eds-xscroll-end='1']) {
+        background-image: linear-gradient(
+          to left,
+          rgba(255, 255, 255, 0.16),
+          rgba(255, 255, 255, 0) 20%
+        );
+        background-repeat: no-repeat;
+      }
+
       /* 滚动条本身也做可见化，作为第二重（不遮挡内容的）提示 */
       #notion-article pre[data-eds-xscroll='1']::-webkit-scrollbar,
       #notion-article table[data-eds-xscroll='1']::-webkit-scrollbar {
