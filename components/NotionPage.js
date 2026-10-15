@@ -183,6 +183,16 @@ const NotionPage = ({ post, className }) => {
       }, 400)
     }
 
+    // 全量重挂（子树被 React 替换后使用）：alt、失效图片兜底、放大标记、横向溢出
+    let enhanceTimer = null
+    const scheduleEnhance = () => {
+      if (enhanceTimer) return
+      enhanceTimer = window.setTimeout(() => {
+        enhanceTimer = null
+        enhance()
+      }, 150)
+    }
+
     // 4) 被固定宽度压小的图片：Notion 源数据给图片块设了 block_width（例如摄影页
     //    44 张全部为 340px），而原图有 2 倍以上分辨率余量时，说明这个固定宽度
     //    把图片压小了。只标记"有分辨率余量"的图，避免把所有图片强行放大到同一尺寸。
@@ -224,6 +234,18 @@ const NotionPage = ({ post, className }) => {
     root.addEventListener('scroll', onScrollCapture, true)
     root.addEventListener('click', scheduleRemeasure, true)
     window.addEventListener('resize', scheduleRemeasure)
+
+    // important：应用存在一次全站水合不匹配（见 themes/theme.js 的动态布局机制），
+    // 结果 React 会在水合后把 #notion-article 的子树整体替换掉，本文件挂上的
+    // alt / data-eds-* 标记会被清空。原来只靠 3 个定时器，属于撞运气。
+    // 这里用 MutationObserver 监听子树变化后重新挂载，做到真正的自愈。
+    // 注意：enhance() 只改属性、不插删节点，因此不会触发自身的 childList 回调形成循环。
+    let observer = null
+    if (typeof MutationObserver !== 'undefined') {
+      observer = new MutationObserver(scheduleEnhance)
+      observer.observe(root, { childList: true, subtree: true })
+    }
+
     // 图片与公式是异步到位/懒加载的，多补几次测量
     const timers = [400, 1500, 3500].map(delay =>
       window.setTimeout(enhance, delay)
@@ -235,6 +257,8 @@ const NotionPage = ({ post, className }) => {
       root.removeEventListener('scroll', onScrollCapture, true)
       root.removeEventListener('click', scheduleRemeasure, true)
       window.removeEventListener('resize', scheduleRemeasure)
+      if (observer) observer.disconnect()
+      if (enhanceTimer) window.clearTimeout(enhanceTimer)
       if (remeasureTimer) window.clearTimeout(remeasureTimer)
       timers.forEach(timer => window.clearTimeout(timer))
     }
