@@ -19,18 +19,18 @@ export async function getStaticProps({ params: { category }, locale }) {
   let props = await fetchGlobalAllData({ from, locale })
 
   // 过滤状态
-  props.posts = props.allPages?.filter(
+  props.posts = (props.allPages || []).filter(
     page => page.type === 'Post' && page.status === 'Published'
   )
-  // 处理过滤
-  props.posts = props.posts.filter(
+  // 处理过滤（数据源不可用时上面会得到空数组，这里不能再假定有值）
+  props.posts = (props.posts || []).filter(
     post => post && post.category && post.category.includes(category)
   )
 
   // 全站文章总数：定义与 lib/db/SiteDataApi 里的 postCount 完全一致。
   // 下面的 props.postCount 会被覆盖成「当前分类命中的文章数」（那是 IndexHeader 要显示的），
   // 所以趁 allPages 还在，单独留一个站点级字段给 Hero 用，避免同一个 Hero 混两种口径。
-  props.sitePostCount = props.allPages?.filter(
+  props.sitePostCount = (props.allPages || []).filter(
     page => page.type === 'Post' && page.status === 'Published'
   ).length
 

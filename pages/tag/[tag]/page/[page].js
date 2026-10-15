@@ -13,7 +13,7 @@ export async function getStaticProps({ params: { tag, page }, locale }) {
   const from = 'tag-page-props'
   const props = await fetchGlobalAllData({ from, locale })
   // 过滤状态、标签
-  props.posts = props.allPages
+  props.posts = props.allPages || []
     ?.filter(page => page.type === 'Post' && page.status === 'Published')
     .filter(post => post && post?.tags && post?.tags.includes(tag))
   // 处理文章数

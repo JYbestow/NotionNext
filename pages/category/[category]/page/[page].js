@@ -20,7 +20,7 @@ export async function getStaticProps({ params: { category, page } }) {
   let props = await fetchGlobalAllData({ from })
 
   // 过滤状态类型
-  props.posts = props.allPages
+  props.posts = props.allPages || []
     ?.filter(page => page.type === 'Post' && page.status === 'Published')
     .filter(post => post && post.category && post.category.includes(category))
   // 处理文章页数

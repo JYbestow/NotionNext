@@ -64,7 +64,7 @@ export async function getStaticProps(req) {
     false,
     props?.NOTION_CONFIG
   )
-  props.posts = props.allPages?.filter(
+  props.posts = (props.allPages || []).filter(
     page => page.type === 'Post' && page.status === 'Published'
   )
 
@@ -88,7 +88,7 @@ export async function getStaticProps(req) {
     const previewLimit = pLimit(
       siteConfig('POST_PREVIEW_CONCURRENCY', 5, props?.NOTION_CONFIG)
     )
-    const previewTargets = props.posts.filter(
+    const previewTargets = (props.posts || []).filter(
       post => !post.password || post.password === ''
     ).slice(0, POST_PREVIEW_MAX_COUNT)
     await Promise.all(

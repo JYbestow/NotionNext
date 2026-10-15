@@ -23,7 +23,7 @@ export async function getStaticProps({ params: { keyword }, locale }) {
     locale
   })
   const { allPages } = props
-  const allPosts = allPages?.filter(
+  const allPosts = (allPages || []).filter(
     page => page.type === 'Post' && page.status === 'Published'
   )
   // 数据源读取失败（兜底数据）与「搜索无结果」必须分开报
