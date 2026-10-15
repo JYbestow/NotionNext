@@ -147,16 +147,26 @@ const NotionPage = ({ post, className }) => {
     }
 
     // 3) 横向溢出提示：只有真的溢出才标记，滚到末尾后撤掉提示
-    const markScrollable = () => {
-      root.querySelectorAll('pre, table').forEach(el => {
-        const overflow = el.scrollWidth - el.clientWidth
-        if (overflow > 4) {
-          el.setAttribute('data-eds-xscroll', '1')
-        } else {
-          el.removeAttribute('data-eds-xscroll')
-          el.removeAttribute('data-eds-xscroll-end')
-        }
-      })
+    // 注意：应用存在一次全站水合替换（见 themes/theme.js 的动态布局机制），
+    // React 会把 #notion-article 整个换成新节点。闭包里捕获的 root 会变成脱离文档的旧树，
+    // 在旧树上打标记页面看不见。因此每次测量都重新解析当前节点。
+    const getLiveRoot = () =>
+      (typeof document !== 'undefined' &&
+        document.getElementById('notion-article')) ||
+      root
+
+    const markScrollable = (allowClear = false) => {
+      getLiveRoot()
+        .querySelectorAll('pre, table')
+        .forEach(el => {
+          const overflow = el.scrollWidth - el.clientWidth
+          if (overflow > 4) {
+            el.setAttribute('data-eds-xscroll', '1')
+          } else if (allowClear) {
+            el.removeAttribute('data-eds-xscroll')
+            el.removeAttribute('data-eds-xscroll-end')
+          }
+        })
     }
 
     const onScrollCapture = event => {
@@ -174,14 +184,18 @@ const NotionPage = ({ post, className }) => {
     }
 
     // 节流复查：滚动 / 点击（展开折叠面板）/ 改变窗口宽度后重新测量横向溢出
+    // allowClear=true 只用于窗口尺寸变化这种真实布局变化，可清掉不再溢出的标记；
+    // 其余高频调用只增不减，避免某次瞬时测量为 0 就把标记抹掉（这曾导致打标随机丢失）。
     let remeasureTimer = null
-    const scheduleRemeasure = () => {
+    const scheduleRemeasure = (allowClear = false) => {
       if (remeasureTimer) return
       remeasureTimer = window.setTimeout(() => {
         remeasureTimer = null
-        markScrollable()
+        markScrollable(allowClear)
       }, 400)
     }
+    const onResize = () => scheduleRemeasure(true)
+    const onClickCapture = () => scheduleRemeasure()
 
     // 全量重挂（子树被 React 替换后使用）：alt、失效图片兜底、放大标记、横向溢出
     let enhanceTimer = null
@@ -215,7 +229,7 @@ const NotionPage = ({ post, className }) => {
     }
 
     const enhance = () => {
-      const images = root.querySelectorAll('img')
+      const images = getLiveRoot().querySelectorAll('img')
       images.forEach(img => {
         normalizeImgAlt(img)
         // 事件监听挂载前就已经失败的图片：complete 且 naturalWidth 为 0
@@ -232,8 +246,8 @@ const NotionPage = ({ post, className }) => {
     root.addEventListener('error', onImgError, true)
     root.addEventListener('load', onImgLoad, true)
     root.addEventListener('scroll', onScrollCapture, true)
-    root.addEventListener('click', scheduleRemeasure, true)
-    window.addEventListener('resize', scheduleRemeasure)
+    root.addEventListener('click', onClickCapture, true)
+    window.addEventListener('resize', onResize)
 
     // important：应用存在一次全站水合不匹配（见 themes/theme.js 的动态布局机制），
     // 结果 React 会在水合后把 #notion-article 的子树整体替换掉，本文件挂上的
@@ -243,7 +257,9 @@ const NotionPage = ({ post, className }) => {
     let observer = null
     if (typeof MutationObserver !== 'undefined') {
       observer = new MutationObserver(scheduleEnhance)
-      observer.observe(root, { childList: true, subtree: true })
+      // 观察 body（稳定节点）：React 连 #notion-article 本身都会替换，
+      // 挂在文章节点上的观察者会随着旧节点一起失效。
+      observer.observe(document.body, { childList: true, subtree: true })
     }
 
     // 图片与公式是异步到位/懒加载的，多补几次测量
@@ -255,8 +271,8 @@ const NotionPage = ({ post, className }) => {
       root.removeEventListener('error', onImgError, true)
       root.removeEventListener('load', onImgLoad, true)
       root.removeEventListener('scroll', onScrollCapture, true)
-      root.removeEventListener('click', scheduleRemeasure, true)
-      window.removeEventListener('resize', scheduleRemeasure)
+      root.removeEventListener('click', onClickCapture, true)
+      window.removeEventListener('resize', onResize)
       if (observer) observer.disconnect()
       if (enhanceTimer) window.clearTimeout(enhanceTimer)
       if (remeasureTimer) window.clearTimeout(remeasureTimer)
