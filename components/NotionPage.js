@@ -212,14 +212,18 @@ const NotionPage = ({ post, className }) => {
     //    把图片压小了。只标记"有分辨率余量"的图，避免把所有图片强行放大到同一尺寸。
     const markUpscalable = img => {
       if (!img.naturalWidth || !img.naturalHeight) return
-      const rendered = img.getBoundingClientRect().width
-      if (rendered < 8) return
       const holder = img.parentElement
-      if (!holder || !/px$/.test(holder.style.width || '')) return
-      if (img.naturalWidth >= rendered * 1.8) {
+      if (!holder) return
+      // 基准宽度必须取 Notion 源数据给的固定宽度（inline style 上的 block_width），
+      // 不能用实时渲染宽度：一旦放大样式生效，实时宽度就变成放大后的 512，
+      // 余量比随即跌到 1.33 以下 → 标记被摘掉 → 宽度退回 340 → 又满足条件……
+      // 来回振荡，最后哪些图被放大完全取决于最后一次测量（线上表现为 21/23 随机分裂）。
+      // 只加不减：判据基于原图分辨率，是内在属性，不会随布局变化。
+      const inline = parseFloat(holder.style.width || '')
+      const base = inline > 0 ? inline : img.getBoundingClientRect().width
+      if (base < 8) return
+      if (img.naturalWidth >= base * 1.8) {
         holder.classList.add('eds-upscale')
-      } else {
-        holder.classList.remove('eds-upscale')
       }
     }
 
