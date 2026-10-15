@@ -1,18 +1,80 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import throttle from 'lodash.throttle'
 import { uuidToId } from 'notion-utils'
-import { IconClock, IconListTree, IconArrowUp, IconX, IconMessage } from '@tabler/icons-react'
+import { IconClock, IconListTree, IconArrowUp, IconX, IconMessage, IconAdjustments } from '@tabler/icons-react'
 import { SideBar } from './SideBar'
 
 /**
  * FloatingControls Component
  * Consolidates Recent Logs, TOC, and ScrollToTop into a single capsule widget.
+ *
+ * 窄屏（< lg）行为调整（第 5 轮）：
+ *   原来移动端是一整条 flex-row 胶囊（最多 4 个 40px 圆钮 + 内边距 ≈ 208×56），
+ *   固定停在右下角，会持续压住正文文字（390px 下实测遮挡 10696 px²）。
+ *   现在改为：默认只露一个 40px 圆钮，点一下才展开整排控件；
+ *   并且向下滚动时自动收起（向上滚动或回到顶部立即恢复）。
+ *   桌面端（>= lg）保持原样：竖排胶囊常驻，不受影响。
  */
 const FloatingControls = ({ toc, ...props }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(null) // 'logs' | 'toc'
   const [percent, setPercent] = useState(0)
   const [activeSection, setActiveSection] = useState(null)
+
+  // -- 窄屏折叠 / 滚动收起 --
+  const [compactOpen, setCompactOpen] = useState(false)
+  const [peekHidden, setPeekHidden] = useState(false)
+  const isDesktopRef = useRef(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const apply = () => {
+      isDesktopRef.current = mq.matches
+      if (mq.matches) {
+        // 回到桌面宽度时恢复常驻，避免状态残留
+        setCompactOpen(false)
+        setPeekHidden(false)
+      }
+    }
+    apply()
+    mq.addEventListener?.('change', apply)
+    return () => mq.removeEventListener?.('change', apply)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    let lastY = window.scrollY
+    const onScroll = throttle(() => {
+      if (isDesktopRef.current) return
+      const y = window.scrollY
+      if (y > 200 && y > lastY + 10) {
+        setPeekHidden(true) // 向下阅读时让出视线
+      } else if (y < lastY - 10 || y <= 200) {
+        setPeekHidden(false) // 向上滚动 / 回到顶部立即恢复
+      }
+      lastY = y
+    }, 150)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // 展开时点击抽屉之外任意位置收起（窄屏）
+  useEffect(() => {
+    if (!compactOpen || typeof document === 'undefined') return
+    const onDown = event => {
+      const el = event.target
+      if (el && el.closest && el.closest('#eds-floating-controls')) return
+      setCompactOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('touchstart', onDown, { passive: true })
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('touchstart', onDown)
+    }
+  }, [compactOpen])
+
   
   // -- TOC Logic --
   useEffect(() => {
@@ -178,9 +240,33 @@ const FloatingControls = ({ toc, ...props }) => {
       </div>
 
       {/* The Controls (Buttons) */}
-      <div className="fixed right-4 bottom-8 z-50 flex flex-col items-end gap-2 pointer-events-none">
+      <div
+        id='eds-floating-controls'
+        className={`fixed right-4 z-50 flex flex-col items-end gap-2 pointer-events-none transition-[transform,opacity] duration-300 ease-out ${
+          peekHidden ? 'translate-y-[160%] opacity-0' : 'translate-y-0 opacity-100'
+        }`}
+        style={{ bottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
+      >
+        {/* 窄屏入口：默认只露一个 40px 圆钮，避免整排浮层压住正文 */}
+        <button
+          type='button'
+          onClick={() => setCompactOpen(v => !v)}
+          aria-expanded={compactOpen}
+          aria-controls='eds-floating-capsule'
+          aria-label={compactOpen ? '收起浮动控件' : '展开浮动控件（日志 / 目录 / 评论 / 回到顶部）'}
+          title={compactOpen ? '收起' : '日志 / 目录 / 评论 / 回到顶部'}
+          className={`lg:hidden w-10 h-10 rounded-full bg-white/95 backdrop-blur-sm shadow-lg border border-[var(--endspace-border-base)] flex items-center justify-center pointer-events-auto transition-transform active:scale-95 ${
+            compactOpen ? 'rotate-90' : ''
+          }`}
+        >
+          <IconAdjustments size={20} stroke={2} className='text-black' />
+        </button>
+
         {/* Capsule */}
-        <div className="bg-gray-400/80 backdrop-blur-sm p-1.5 rounded-full shadow-lg flex flex-row lg:flex-col gap-3 pointer-events-auto">
+        <div
+          id='eds-floating-capsule'
+          className={`${compactOpen ? 'flex' : 'hidden'} lg:flex bg-gray-400/80 backdrop-blur-sm p-1.5 rounded-full shadow-lg flex-row lg:flex-col gap-3 pointer-events-auto`}
+        >
              {/* LOGS */}
              <ControlBtn 
                 icon={IconClock} 
