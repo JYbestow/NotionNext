@@ -148,7 +148,7 @@ export const LoadingCover = () => {
       {/* Center - Loading Image and Site Name (horizontal, stacked) */}
       <div className="center-content">
         {loadingImage && (
-          <img src={loadingImage} alt="Loading" className="loading-image" />
+          <img src={loadingImage} alt="" className="loading-image" />
         )}
         <div className="site-name">
           {siteName}

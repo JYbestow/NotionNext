@@ -316,7 +316,7 @@ export const EndspacePlayer = ({ isExpanded, embedded = false }) => {
               <div className="w-full h-full rounded-full overflow-hidden endspace-player-glow endspace-player-rotating">
                 <img 
                   src={currentAudio.cover || '/default-cover.jpg'} 
-                  alt="Cover"
+                  alt={currentAudio?.title || ''}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -449,7 +449,7 @@ export const EndspacePlayer = ({ isExpanded, embedded = false }) => {
         >
           <img 
             src={currentAudio.cover || '/default-cover.jpg'} 
-            alt="Album Cover"
+            alt={currentAudio?.title || ''}
             className={`w-full h-full object-cover transition-transform duration-300 ${isPlaying ? 'scale-105' : ''}`}
           />
           {/* Play/Pause Overlay */}
