@@ -1,6 +1,7 @@
 import BLOG from '@/blog.config'
 import { siteConfig } from '@/lib/config'
 import { fetchGlobalAllData } from '@/lib/db/SiteDataApi'
+import { isSiteDataUnavailable } from '@/lib/site/listState'
 import { DynamicLayout } from '@/themes/theme'
 import { useRouter } from 'next/router'
 
@@ -20,6 +21,8 @@ export async function getStaticProps(req) {
 
   const from = 'tag-index-props'
   const props = await fetchGlobalAllData({ from, locale })
+  // 同 /category：在删除 allPages 之前识别「数据源读取失败」的兜底数据
+  props.dataUnavailable = isSiteDataUnavailable(props)
   delete props.allPages
   return {
     props,

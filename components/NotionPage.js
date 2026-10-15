@@ -108,6 +108,121 @@ const NotionPage = ({ post, className }) => {
     }
   }, [post])
 
+  // 渐进增强：图片替代文本 / 失效图片兜底 / 代码块与表格的横向溢出提示
+  //
+  // 为什么不覆盖 react-notion-x 的 components.Image：
+  // 它自己的 Image 走 LazyImageFull + medium-zoom 管线（onLoad / zoom.attach 都挂在
+  // 它内部的 ref 上）。直接替换组件会绕过模糊占位与点击放大，属于"为了 alt 破坏已有功能"。
+  // 因此这里在挂载后只做属性级增强，不动 React 的组件树。
+  useEffect(() => {
+    const root = document.getElementById('notion-article')
+    if (!root) return
+
+    // 1) 替代文本：没有 caption 时 react-notion-x 会统一写 "notion image"，
+    //    这对屏幕阅读器是纯噪音，改为空 alt（装饰性图像），保留有 caption 的真实 alt。
+    const normalizeImgAlt = img => {
+      const alt = img.getAttribute('alt')
+      if (!alt || alt === 'notion image') {
+        img.setAttribute('alt', '')
+        img.setAttribute('data-eds-alt', 'decorative')
+      }
+    }
+
+    // 2) 失效图片兜底：外部图床失效（例如友链头像源站改版后 404）时不再留破图，
+    //    交给 CSS 渲染中性占位块，尺寸与布局保持不变。
+    const markImgFailed = img => {
+      if (img.dataset.edsImgFailed === '1') return
+      img.dataset.edsImgFailed = '1'
+      img.classList.add('eds-img-failed')
+      const holder =
+        img.closest('.notion-asset-wrapper, .notion-collection-card-cover') ||
+        img.parentElement
+      if (holder) holder.classList.add('eds-img-failed-holder')
+    }
+
+    // 错误事件不冒泡，但可以在捕获阶段拿到
+    const onImgError = event => {
+      const el = event.target
+      if (el && el.tagName === 'IMG') markImgFailed(el)
+    }
+
+    // 3) 横向溢出提示：只有真的溢出才标记，滚到末尾后撤掉提示
+    const markScrollable = () => {
+      root.querySelectorAll('pre, table').forEach(el => {
+        const overflow = el.scrollWidth - el.clientWidth
+        if (overflow > 4) {
+          el.setAttribute('data-eds-xscroll', '1')
+        } else {
+          el.removeAttribute('data-eds-xscroll')
+          el.removeAttribute('data-eds-xscroll-end')
+        }
+      })
+    }
+
+    const onScrollCapture = event => {
+      const el = event.target
+      if (!el || typeof el.getAttribute !== 'function') return
+      if (el.getAttribute('data-eds-xscroll') !== '1') return
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4
+      if (atEnd) {
+        el.setAttribute('data-eds-xscroll-end', '1')
+      } else {
+        el.removeAttribute('data-eds-xscroll-end')
+      }
+    }
+
+    // 4) 被固定宽度压小的图片：Notion 源数据给图片块设了 block_width（例如摄影页
+    //    44 张全部为 340px），而原图有 2 倍以上分辨率余量时，说明这个固定宽度
+    //    把图片压小了。只标记"有分辨率余量"的图，避免把所有图片强行放大到同一尺寸。
+    const markUpscalable = img => {
+      if (!img.naturalWidth || !img.naturalHeight) return
+      const rendered = img.getBoundingClientRect().width
+      if (rendered < 8) return
+      const holder = img.parentElement
+      if (!holder || !/px$/.test(holder.style.width || '')) return
+      if (img.naturalWidth >= rendered * 1.8) {
+        holder.classList.add('eds-upscale')
+      } else {
+        holder.classList.remove('eds-upscale')
+      }
+    }
+
+    const onImgLoad = event => {
+      const el = event.target
+      if (el && el.tagName === 'IMG') markUpscalable(el)
+    }
+
+    const enhance = () => {
+      const images = root.querySelectorAll('img')
+      images.forEach(img => {
+        normalizeImgAlt(img)
+        // 事件监听挂载前就已经失败的图片：complete 且 naturalWidth 为 0
+        if (img.complete && img.naturalWidth === 0) {
+          markImgFailed(img)
+        } else {
+          markUpscalable(img)
+        }
+      })
+      markScrollable()
+    }
+
+    enhance()
+    root.addEventListener('error', onImgError, true)
+    root.addEventListener('load', onImgLoad, true)
+    root.addEventListener('scroll', onScrollCapture, true)
+    // 图片与公式是异步到位/懒加载的，多补几次测量
+    const timers = [400, 1500, 3500].map(delay =>
+      window.setTimeout(enhance, delay)
+    )
+
+    return () => {
+      root.removeEventListener('error', onImgError, true)
+      root.removeEventListener('load', onImgLoad, true)
+      root.removeEventListener('scroll', onScrollCapture, true)
+      timers.forEach(timer => window.clearTimeout(timer))
+    }
+  }, [post])
+
   // const cleanBlockMap = cleanBlocksWithWarn(post?.blockMap);
   // console.log('NotionPage render with post:', post);
 

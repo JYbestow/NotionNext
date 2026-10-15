@@ -2,6 +2,7 @@ import BLOG from '@/blog.config'
 import { getDataFromCache } from '@/lib/cache/cache_manager'
 import { siteConfig } from '@/lib/config'
 import { fetchGlobalAllData } from '@/lib/db/SiteDataApi'
+import { isSiteDataUnavailable } from '@/lib/site/listState'
 import { DynamicLayout } from '@/themes/theme'
 import { getPageContentText } from '@/lib/db/notion/getPageContentText'
 import { getPageBlockCacheKey } from '@/lib/db/notion/getPostBlocks'
@@ -25,6 +26,8 @@ export async function getStaticProps({ params: { keyword }, locale }) {
   const allPosts = allPages?.filter(
     page => page.type === 'Post' && page.status === 'Published'
   )
+  // 数据源读取失败（兜底数据）与「搜索无结果」必须分开报
+  props.dataUnavailable = isSiteDataUnavailable(props)
   // 全站文章总数：定义与 lib/db/SiteDataApi 里的 postCount 完全一致。
   // 下面的 props.postCount 会被覆盖成「当前关键词命中的文章数」（那是 IndexHeader 要显示的），
   // 所以趁 allPages 还在，单独留一个站点级字段给 Hero 用，避免同一个 Hero 混两种口径。

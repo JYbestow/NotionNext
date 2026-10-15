@@ -1,6 +1,7 @@
 import BLOG from '@/blog.config'
 import { siteConfig } from '@/lib/config'
 import { fetchGlobalAllData } from '@/lib/db/SiteDataApi'
+import { isSiteDataUnavailable } from '@/lib/site/listState'
 import { DynamicLayout } from '@/themes/theme'
 import { useRouter } from 'next/router'
 
@@ -52,6 +53,8 @@ export async function getStaticProps({ locale }) {
   props.posts = allPages?.filter(
     page => page.type === 'Post' && page.status === 'Published'
   )
+  // 数据源读取失败（兜底数据）与「搜索无结果」必须分开报
+  props.dataUnavailable = isSiteDataUnavailable(props)
   return {
     props,
     revalidate: process.env.EXPORT

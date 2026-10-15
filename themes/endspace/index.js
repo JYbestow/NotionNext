@@ -6,14 +6,16 @@ import ShareBar from '@/components/ShareBar'
 import SmartLink from '@/components/SmartLink'
 import { siteConfig } from '@/lib/config'
 import { useGlobal } from '@/lib/global'
+import { resolveListState } from '@/lib/site/listState'
 import { isBrowser } from '@/lib/utils'
 import { Transition } from '@headlessui/react'
 import { useRouter } from 'next/router'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import BlogListArchive from './components/BlogListArchive'
 import { BlogListPage } from './components/BlogListPage'
 import { BlogListScroll } from './components/BlogListScroll'
 import { IndexHeader, ListFilterBar } from './components/ListHeader'
+import { ListStateNotice } from './components/ListStateNotice'
 import { PostGrid } from './components/PostGrid'
 import { Footer } from './components/Footer'
 import { PostLock } from './components/PostLock'
@@ -191,7 +193,9 @@ const LayoutIndex = (props) => {
     <>
       {/* 分类筛选 + 紧凑搜索：都走现有真实路由（/category/<name>、/search/<term>） */}
       {showFilter && <ListFilterBar categoryOptions={categoryOptions} />}
-      <LayoutPostList {...props} />
+      {/* 首页不在本次「零结果/异常状态」范围内：显式关闭列表空态，
+          保证首页（含零文章时）的渲染与改动前完全一致 */}
+      <LayoutPostList {...props} listStateEnabled={false} />
     </>
   )
 }
@@ -202,19 +206,46 @@ const LayoutIndex = (props) => {
  * @returns
  */
 const LayoutPostList = (props) => {
-  const { category, tag, postCount } = props
+  const {
+    category,
+    tag,
+    postCount,
+    posts,
+    page,
+    allCategoryNames,
+    allTagNames,
+    // 首页通过 LayoutIndex 传 false 关闭空态（见 LayoutIndex），其它列表页默认开启
+    listStateEnabled = true
+  } = props
+  const router = useRouter()
   // 分类 / 标签页补一张「数据库索引」表头：原来这里只有一列卡片，页面显得很空。
   // 计数用当前路由真实命中的文章数（pages/category|tag/[x]/index.js 里的 postCount）。
   const indexKind = category ? 'CATEGORY NODE' : tag ? 'TAG MARKER' : null
+  // 零结果 / 异常状态：有结果、或路由回退（fallback）中时返回 null，
+  // 下面的渲染路径与改动前完全一致（含分页、封面、统计数字）。
+  const listState = listStateEnabled
+    ? resolveListState({
+        kind: category ? 'category' : tag ? 'tag' : 'list',
+        value: category || tag || '',
+        visibleCount: Array.isArray(posts) ? posts.length : 0,
+        totalCount: postCount,
+        knownNames: category ? allCategoryNames : tag ? allTagNames : null,
+        page,
+        dataUnavailable: props.dataUnavailable === true,
+        loading: router.isFallback === true
+      })
+    : null
   return (
     <>
       {indexKind && (
         <IndexHeader
           kindLabel={indexKind}
           value={category || (tag ? `#${tag}` : null)}
-          postCount={postCount}
+          // 数据读取失败时不显示「ARTICLE COUNT 0」：那会被读成「站点真的没有文章」
+          postCount={listState?.tone === 'error' ? undefined : postCount}
         />
       )}
+      {listState && <ListStateNotice state={listState} />}
       {siteConfig('POST_LIST_STYLE') === 'page' ? (
         <BlogListPage {...props} />
       ) : (
@@ -365,6 +396,30 @@ const Layout404 = (props) => {
  */
 const LayoutSearch = (props) => {
   const { keyword, posts = [], postCount } = props
+  const router = useRouter()
+
+  // /search 路由的关键词来自 ?s=，SSR 与 hydration 首帧都还没有 query。
+  // 用一个「挂载后」的标记（而不是直接读 router.isReady）来判定，
+  // 保证服务端与客户端首帧渲染结果一致，不会触发 hydration 不一致；
+  // 在 query 解析出来之前不判定「没有关键词」，避免先显示提示再跳到结果。
+  const [clientMounted, setClientMounted] = useState(false)
+  useEffect(() => {
+    setClientMounted(true)
+  }, [])
+
+  const listState = resolveListState({
+    kind: 'search',
+    value: keyword,
+    visibleCount: posts.length,
+    totalCount: postCount,
+    page: props.page,
+    dataUnavailable: props.dataUnavailable === true,
+    loading:
+      router.isFallback === true ||
+      (!keyword &&
+        router.pathname === '/search' &&
+        !(clientMounted && router.isReady))
+  })
 
   useEffect(() => {
     if (isBrowser) {
@@ -388,11 +443,13 @@ const LayoutSearch = (props) => {
       <IndexHeader
         kindLabel='SEARCH QUERY'
         value={keyword ? `“${keyword}”` : null}
-        postCount={postCount}
+        // 数据读取失败时不显示「ARTICLE COUNT 0」，与提示文案保持同一口径
+        postCount={listState?.tone === 'error' ? undefined : postCount}
       />
       <div className="mb-8">
         <SearchInput {...props} />
       </div>
+      {listState && <ListStateNotice state={listState} />}
       {/* Search results list - no pagination（保持 #posts-wrapper，搜索高亮依赖它） */}
       <PostGrid posts={posts} />
     </>
@@ -502,6 +559,13 @@ const LayoutArchive = (props) => {
  */
 const LayoutCategoryIndex = (props) => {
   const { categoryOptions = [], postCount } = props
+  // 分类清单为空时给出明确空状态（区分「站点还没有分类」与「数据读取失败」）
+  const listState = resolveListState({
+    kind: 'categoryIndex',
+    visibleCount: categoryOptions.length,
+    totalCount: postCount,
+    dataUnavailable: props.dataUnavailable === true
+  })
   return (
     <>
       <Style />
@@ -510,32 +574,36 @@ const LayoutCategoryIndex = (props) => {
         value='ALL CATEGORIES'
         // 这里的计数就是全站已发布文章数（/category 页面的 props.postCount 未被筛选覆盖），
         // 与 Hero 同口径；缺失时 IndexHeader 自己会省略这一格，不做任何求和推算。
-        postCount={postCount}
+        postCount={listState?.tone === 'error' ? undefined : postCount}
         note={`${categoryOptions.length} 个分类节点`}
       />
-      <div className="endspace-card p-6 md:p-8">
-        <div
-          id="category-list"
-          className="eds-idx-list"
-        >
-          {categoryOptions?.map((category) => (
-            <SmartLink
-              key={category.name}
-              href={`/category/${category.name}`}
-              className="eds-idx-row"
-            >
-              <span className="eds-idx-row__k">{category.name}</span>
-              <span className="eds-idx-row__line" aria-hidden="true" />
-              <span className="eds-idx-row__n eds-mono">
-                {typeof category.count === 'number' ? category.count : 0} DOCS
-              </span>
-              <span className="eds-idx-row__go" aria-hidden="true">
-                <IconArrowRight size={11} stroke={2.2} />
-              </span>
-            </SmartLink>
-          ))}
+      {listState ? (
+        <ListStateNotice state={listState} />
+      ) : (
+        <div className="endspace-card p-6 md:p-8">
+          <div
+            id="category-list"
+            className="eds-idx-list"
+          >
+            {categoryOptions?.map((category) => (
+              <SmartLink
+                key={category.name}
+                href={`/category/${category.name}`}
+                className="eds-idx-row"
+              >
+                <span className="eds-idx-row__k">{category.name}</span>
+                <span className="eds-idx-row__line" aria-hidden="true" />
+                <span className="eds-idx-row__n eds-mono">
+                  {typeof category.count === 'number' ? category.count : 0} DOCS
+                </span>
+                <span className="eds-idx-row__go" aria-hidden="true">
+                  <IconArrowRight size={11} stroke={2.2} />
+                </span>
+              </SmartLink>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </>
   )
 }
@@ -547,6 +615,13 @@ const LayoutCategoryIndex = (props) => {
  */
 const LayoutTagIndex = (props) => {
   const { tagOptions = [], postCount } = props
+  // 标签清单为空时给出明确空状态（区分「站点还没有标签」与「数据读取失败」）
+  const listState = resolveListState({
+    kind: 'tagIndex',
+    visibleCount: tagOptions.length,
+    totalCount: postCount,
+    dataUnavailable: props.dataUnavailable === true
+  })
   return (
     <>
       <Style />
@@ -554,29 +629,33 @@ const LayoutTagIndex = (props) => {
         kindLabel='TAG MARKER'
         value='ALL TAGS'
         // 全站文章数，不用 tagOptions 求和 —— 一篇文章可以有多个标签，求和会重复计数
-        postCount={postCount}
+        postCount={listState?.tone === 'error' ? undefined : postCount}
         note={`${tagOptions.length} 个标签标记`}
       />
-      <div className="endspace-frame p-6 md:p-8">
-        <div id="tags-list" className="eds-idx-list">
-          {tagOptions.map((tag) => (
-            <SmartLink
-              key={tag.name}
-              href={`/tag/${encodeURIComponent(tag.name)}`}
-              className="eds-idx-row"
-            >
-              <span className="eds-idx-row__k">#{tag.name}</span>
-              <span className="eds-idx-row__line" aria-hidden="true" />
-              <span className="eds-idx-row__n eds-mono">
-                {typeof tag.count === 'number' ? tag.count : 0} DOCS
-              </span>
-              <span className="eds-idx-row__go" aria-hidden="true">
-                <IconArrowRight size={11} stroke={2.2} />
-              </span>
-            </SmartLink>
-          ))}
+      {listState ? (
+        <ListStateNotice state={listState} />
+      ) : (
+        <div className="endspace-frame p-6 md:p-8">
+          <div id="tags-list" className="eds-idx-list">
+            {tagOptions.map((tag) => (
+              <SmartLink
+                key={tag.name}
+                href={`/tag/${encodeURIComponent(tag.name)}`}
+                className="eds-idx-row"
+              >
+                <span className="eds-idx-row__k">#{tag.name}</span>
+                <span className="eds-idx-row__line" aria-hidden="true" />
+                <span className="eds-idx-row__n eds-mono">
+                  {typeof tag.count === 'number' ? tag.count : 0} DOCS
+                </span>
+                <span className="eds-idx-row__go" aria-hidden="true">
+                  <IconArrowRight size={11} stroke={2.2} />
+                </span>
+              </SmartLink>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </>
   )
 }

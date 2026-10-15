@@ -1,6 +1,7 @@
 import BLOG from '@/blog.config'
 import { siteConfig } from '@/lib/config'
 import { fetchGlobalAllData } from '@/lib/db/SiteDataApi'
+import { isSiteDataUnavailable } from '@/lib/site/listState'
 import { DynamicLayout } from '@/themes/theme'
 
 /**
@@ -49,6 +50,9 @@ export async function getStaticProps({ params: { category }, locale }) {
       siteConfig('POSTS_PER_PAGE', 12, props?.NOTION_CONFIG)
     )
   }
+
+  // 数据源读取失败（fetchGlobalAllData 的兜底数据）与「该分类下没有文章」必须分开报
+  props.dataUnavailable = isSiteDataUnavailable(props)
 
   delete props.allPages
 

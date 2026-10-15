@@ -589,6 +589,93 @@ export const Style = () => {
       }
 
       /* ============================================
+         图片替代文本 / 失效图片兜底
+         NotionPage 挂载后：无 caption 的图改为空 alt；
+         外链失效时给 img 与容器打 eds-img-failed*，这里渲染中性占位块，
+         不再显示浏览器破图图标，也不改变原有尺寸与布局。
+         ============================================ */
+      #notion-article img.eds-img-failed {
+        visibility: hidden;
+      }
+
+      #notion-article .eds-img-failed-holder {
+        position: relative;
+      }
+
+      #notion-article .eds-img-failed-holder::after {
+        content: '图片不可用';
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        color: var(--endspace-text-muted);
+        background: repeating-linear-gradient(
+          45deg,
+          transparent 0 6px,
+          rgba(0, 0, 0, 0.03) 6px 12px
+        );
+        border: 1px dashed var(--endspace-border-base);
+        border-radius: 6px;
+        pointer-events: none;
+      }
+
+      /* 被 Notion block_width 压小、但原图仍有分辨率余量的图片：
+         给一个更大的响应式宽度。只作用于「原图宽 ≥ 渲染宽 1.8 倍」的图，
+         因此不会把所有图片强行放大到同一尺寸；比例与顺序均不变。 */
+      #notion-article .eds-upscale {
+        width: min(100%, 32rem) !important;
+        max-width: 100% !important;
+      }
+
+      @media (min-width: 1536px) {
+        #notion-article .eds-upscale {
+          width: min(100%, 40rem) !important;
+        }
+      }
+
+      /* ============================================
+         代码块 / 表格 横向溢出提示
+         NotionPage 给真正横向溢出的 pre / table 打 data-eds-xscroll，
+         滚到末尾时打 data-eds-xscroll-end —— 提示随之出现与消失。
+         ============================================ */
+      #notion-article pre[data-eds-xscroll='1'],
+      #notion-article table[data-eds-xscroll='1'] {
+        scrollbar-width: thin;
+      }
+
+      /* 右缘内阴影：表示右侧还有内容，不覆盖任何文字 */
+      #notion-article pre[data-eds-xscroll='1']:not([data-eds-xscroll-end='1']),
+      #notion-article table[data-eds-xscroll='1']:not([data-eds-xscroll-end='1']) {
+        box-shadow: inset -22px 0 18px -18px rgba(0, 0, 0, 0.5);
+      }
+
+      /* 代码块工具栏：左侧给一句克制的文字提示（右侧是复制按钮，不得遮挡） */
+      #notion-article .code-toolbar {
+        position: relative;
+      }
+
+      #notion-article .code-toolbar:has(pre[data-eds-xscroll='1']:not([data-eds-xscroll-end='1']))::before {
+        content: '⇄ 可横向滚动';
+        position: absolute;
+        left: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 10px;
+        line-height: 1;
+        letter-spacing: 0.02em;
+        color: var(--endspace-text-muted);
+        background: var(--endspace-bg-base);
+        border: 1px solid var(--endspace-border-base);
+        border-radius: 999px;
+        padding: 3px 7px;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      /* ============================================
          Player Styles
          ============================================ */
       .endspace-player-glow {

@@ -574,6 +574,33 @@ const ThemeSwitch = () => {
   const [sideBarVisible, setSideBarVisible] = useState(false)
   const [consoleMounted, setConsoleMounted] = useState(false)
   const [consoleVisible, setConsoleVisible] = useState(false)
+  // 悬浮入口默认收起：展开态宽约 230px，贴左边缘时会压住正文（尤其是手机端）；
+  // 收起态是一条窄于正文左侧留白的边缘窄条，几何上不可能遮挡正文。
+  const [entryOpen, setEntryOpen] = useState(false)
+  const entryRef = useRef(null)
+
+  // 展开后：点击面板外 / 按 Esc 都能收起，避免窄条展开成常驻遮挡
+  useEffect(() => {
+    if (!entryOpen) return
+    const onPointerDown = event => {
+      if (!entryRef.current?.contains(event.target)) {
+        setEntryOpen(false)
+      }
+    }
+    const onKeyDown = event => {
+      if (event.key === 'Escape') {
+        setEntryOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('touchstart', onPointerDown, { passive: true })
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('touchstart', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [entryOpen])
 
   useEffect(() => {
     if (!consoleMounted) return
@@ -607,10 +634,36 @@ const ThemeSwitch = () => {
     <>
       {/* 悬浮的主题切换按钮 */}
       <Draggable stick={true}>
+        {/* 定位外壳：必须始终是 Draggable 的第一个子元素 —— Draggable 直接读写它的 left/top */}
         <div
+          ref={entryRef}
           id='draggableBox'
           style={{ left: '0px', top: '80vh' }}
-          className={`group fixed z-50 flex max-w-[calc(100vw-1rem)] select-none items-center overflow-hidden rounded-xl border p-1 backdrop-blur-md transition ${
+          className='group fixed z-50 select-none'>
+          {/* 收起态（默认）：贴左边缘的窄条。
+              宽度（手机 20px / ≥640px 32px）刻意小于正文左侧留白
+              （实测 390 视口正文左边界 33px、768 视口 161px、桌面 ≥768px 由 md:ml-[5rem] 保证 ≥80px），
+              所以收起时不可能覆盖正文；点击展开完整面板。 */}
+          {!entryOpen && (
+            <button
+              type='button'
+              onClick={() => setEntryOpen(true)}
+              aria-expanded={false}
+              aria-label={`展开主题切换器，当前主题 ${currentMeta.name}`}
+              title={`主题：${currentMeta.name} · 点击展开`}
+              className={`flex h-14 w-5 cursor-pointer items-center justify-center rounded-r-lg border border-l-0 shadow-sm backdrop-blur-md transition-[width,background-color,color] duration-300 hover:w-10 focus-visible:w-10 focus-visible:outline-none sm:w-8 sm:hover:w-12 sm:focus-visible:w-12 ${
+                isDarkMode
+                  ? 'border-gray-700/80 bg-gray-950/85 text-gray-400 hover:text-gray-100'
+                  : 'border-gray-200/80 bg-white/85 text-gray-500 hover:text-gray-900'
+              }`}>
+              <i className='fa-solid fa-layer-group text-[11px] leading-none' aria-hidden />
+            </button>
+          )}
+
+          {/* 展开态：与修复前完全一致的完整面板 */}
+          {entryOpen && (
+        <div
+          className={`flex max-w-[calc(100vw-1rem)] items-center overflow-hidden rounded-xl border p-1 backdrop-blur-md transition ${
             isDarkMode
               ? 'border-gray-700/90 bg-gray-950/95 shadow-[0_8px_24px_rgba(0,0,0,0.4)] ring-1 ring-white/[0.06]'
               : 'border-gray-200/90 bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.14)] ring-1 ring-black/[0.03]'
@@ -685,7 +738,22 @@ const ThemeSwitch = () => {
                 {isDarkMode ? <Sun /> : <Moon />}
               </span>
             </button>
+            {/* 就地收起：展开态必须有一个明确、可点的收起入口 */}
+            <button
+              type='button'
+              onClick={() => setEntryOpen(false)}
+              className={`flex h-9 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg transition active:scale-95 ${
+                isDarkMode
+                  ? 'text-gray-500 hover:bg-gray-800 hover:text-gray-200'
+                  : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'
+              }`}
+              title='收起主题切换器'
+              aria-label='收起主题切换器'>
+              <i className='fa-solid fa-chevron-left text-[11px] leading-none' aria-hidden />
+            </button>
           </div>
+        </div>
+          )}
         </div>
       </Draggable>
 
