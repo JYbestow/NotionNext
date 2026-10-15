@@ -246,7 +246,10 @@ const LayoutPostList = (props) => {
         />
       )}
       {listState && <ListStateNotice state={listState} />}
-      {siteConfig('POST_LIST_STYLE') === 'page' ? (
+      {/* 无效路由（分类 / 标签不存在）：数据层会退化成「显示全部文章」，
+          此时若照常渲染列表，用户会把这批不相关的文章当成该标签的内容。
+          所以 missing 状态下不渲染列表，只保留上面的提示与出口。 */}
+      {listState?.tone === 'missing' ? null : siteConfig('POST_LIST_STYLE') === 'page' ? (
         <BlogListPage {...props} />
       ) : (
         <BlogListScroll {...props} />
