@@ -2140,6 +2140,22 @@ export const Style = () => {
         color: var(--endspace-text-primary);
         text-decoration: underline;
       }
+      /* 始终可见的出口：即使预览区是空白，用户眼前也有明确可点的入口 */
+      .eds-pdf__foot {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.4rem 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-top: 1px solid var(--eds-line);
+      }
+      .eds-pdf__hint {
+        flex: 1 1 12rem;
+        min-width: 0;
+        font-size: 0.75rem;
+        line-height: 1.5;
+        color: var(--endspace-text-secondary);
+      }
       @media (max-width: 720px) {
         .eds-pdf {
           margin: 1.25rem 0;

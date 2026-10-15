@@ -55,6 +55,21 @@ export function Pdf({ file, block }) {
           </a>
         </div>
       </object>
+      {/* object 内部的回退只在它「加载失败」时才会显示；而 iOS Safari 等移动浏览器
+          属于「加载成功、但预览区一片空白」，内部回退永远不会出现，
+          用户面前就是一大片灰白。所以这里再给一条始终可见的出口。 */}
+      <div className='eds-pdf__foot'>
+        <span className='eds-pdf__hint'>
+          预览区空白？（部分手机浏览器限制内嵌 PDF）
+        </span>
+        <a
+          className='eds-pdf__open'
+          href={src}
+          target='_blank'
+          rel='noopener noreferrer'>
+          在新标签打开原文件 ↗
+        </a>
+      </div>
     </div>
   )
 }
