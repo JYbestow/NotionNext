@@ -655,33 +655,23 @@ export const Style = () => {
         scrollbar-width: thin;
       }
 
-      /* 右缘内阴影：表示右侧还有内容，不覆盖任何文字 */
+      /* 右缘内阴影：表示右侧还有内容。提示只用阴影，不做任何覆盖代码文字的浮层
+         （曾试过在工具栏里放文字提示，实测会压住代码行，已撤掉）。 */
       #notion-article pre[data-eds-xscroll='1']:not([data-eds-xscroll-end='1']),
       #notion-article table[data-eds-xscroll='1']:not([data-eds-xscroll-end='1']) {
-        box-shadow: inset -22px 0 18px -18px rgba(0, 0, 0, 0.5);
+        box-shadow: inset -26px 0 22px -20px rgba(0, 0, 0, 0.7);
       }
 
-      /* 代码块工具栏：左侧给一句克制的文字提示（右侧是复制按钮，不得遮挡） */
-      #notion-article .code-toolbar {
-        position: relative;
+      /* 滚动条本身也做可见化，作为第二重（不遮挡内容的）提示 */
+      #notion-article pre[data-eds-xscroll='1']::-webkit-scrollbar,
+      #notion-article table[data-eds-xscroll='1']::-webkit-scrollbar {
+        height: 8px;
       }
 
-      #notion-article .code-toolbar:has(pre[data-eds-xscroll='1']:not([data-eds-xscroll-end='1']))::before {
-        content: '⇄ 可横向滚动';
-        position: absolute;
-        left: 0.5rem;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 10px;
-        line-height: 1;
-        letter-spacing: 0.02em;
-        color: var(--endspace-text-muted);
-        background: var(--endspace-bg-base);
-        border: 1px solid var(--endspace-border-base);
+      #notion-article pre[data-eds-xscroll='1']::-webkit-scrollbar-thumb,
+      #notion-article table[data-eds-xscroll='1']::-webkit-scrollbar-thumb {
+        background: var(--endspace-text-muted);
         border-radius: 999px;
-        padding: 3px 7px;
-        pointer-events: none;
-        z-index: 2;
       }
 
       /* ============================================
