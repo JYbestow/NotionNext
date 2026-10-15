@@ -14,17 +14,30 @@ const Search = props => {
   const { posts } = props
 
   const router = useRouter()
-  const keyword = router?.query?.s
+  const rawKeyword = router?.query?.s
+  // ?s=a&s=b 会得到数组，取第一个；其余情况保持字符串/undefined
+  const keyword = Array.isArray(rawKeyword) ? rawKeyword[0] : rawKeyword
+
+  // posts 可能因数据源不可用而为 undefined，这里兜底为空数组，
+  // 否则带关键词访问 /search?s=xxx 时会直接抛错并渲染成错误页。
+  const safePosts = Array.isArray(posts) ? posts : []
+  const asText = value => {
+    if (Array.isArray(value)) return value.join(' ')
+    return value ? String(value) : ''
+  }
 
   let filteredPosts
   // 静态过滤
   if (keyword) {
-    filteredPosts = posts.filter(post => {
-      const tagContent = post?.tags ? post?.tags.join(' ') : ''
-      const categoryContent = post.category ? post.category.join(' ') : ''
+    const needle = String(keyword).toLowerCase()
+    filteredPosts = safePosts.filter(post => {
+      if (!post) return false
       const searchContent =
-        post.title + post.summary + tagContent + categoryContent
-      return searchContent.toLowerCase().includes(keyword.toLowerCase())
+        asText(post.title) +
+        asText(post.summary) +
+        asText(post.tags) +
+        asText(post.category)
+      return searchContent.toLowerCase().includes(needle)
     })
   } else {
     filteredPosts = []
