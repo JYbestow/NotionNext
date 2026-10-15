@@ -577,6 +577,14 @@ export const Style = () => {
           min-height: 44px;
         }
 
+        /* 例外：搜索框是固定 30px 高的紧凑控件（.eds-search 自带 1px 边框 + 28px 内容高）。
+           通用的 44px 触控高度会把里面的 GO 按钮撑高 16px，令「输入框 / GO」之间的
+           竖线（button 的 border-left）溢出到框外，看起来就是那条线位置偏移。
+           这里让按钮退回容器内容高度，与输入框等高、竖线不再出头。 */
+        .eds-search button {
+          min-height: 0;
+        }
+
         /* Notion content adjustments */
         #notion-article {
           font-size: 1.1rem;

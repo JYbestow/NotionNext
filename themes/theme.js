@@ -3,6 +3,7 @@ import getConfig from 'next/config'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { getQueryParam, getQueryVariable, isBrowser } from '../lib/utils'
+import { buildThemeLayout, getThemeExport } from './themeLayouts'
 
 // 在next.config.js中扫描所有主题
 export const { THEMES = [] } = getConfig()?.publicRuntimeConfig || {}
@@ -85,14 +86,7 @@ const getFallbackThemeName = themeName => {
   return THEMES.find(item => item !== themeName) || null
 }
 
-const getThemeExport = (mod, exportName) => {
-  if (mod?.[exportName]) return mod[exportName]
-  if (mod?.default?.[exportName]) return mod.default[exportName]
-  if (exportName === 'LayoutBase' && typeof mod?.default === 'function') {
-    return mod.default
-  }
-  return null
-}
+// getThemeExport 统一放在 themes/themeLayouts.js（布局工厂也用它），这里只 import。
 
 const scheduleFixThemeDOM = (delay = 120) => {
   if (!isBrowser) return
@@ -105,6 +99,8 @@ const scheduleFixThemeDOM = (delay = 120) => {
   }, delay)
 }
 
+// 未登记在 themes/themeLayouts.js 的主题（例如刚新建还没补进去）仍用运行时动态导入兜底：
+// 功能不缺失，但这类页面可能有一次水合切换。
 async function importThemeConfig(themeFolderName) {
   try {
     const mod = await import(`@/themes/${themeFolderName}`)
@@ -190,6 +186,13 @@ const getCurrentTheme = (router, fallbackTheme) => {
  * registerLayoutsForTheme 的说明。
  */
 const createBaseLayoutComponent = normalizedTheme =>
+  buildThemeLayout(normalizedTheme, {
+    layoutName: 'LayoutBase',
+    loading: LayoutLoading,
+    empty: EmptyBaseLayout,
+    fallbackThemeName: getFallbackThemeName(normalizedTheme)
+  }) ||
+  // 未登记主题（例如刚新建还没补进 themes/themeLayouts.js）走旧路径，功能不缺失。
   dynamic(
     () => resolveThemeLayout(normalizedTheme, 'LayoutBase', EmptyBaseLayout),
     { ssr: true, loading: LayoutLoading }
@@ -197,6 +200,12 @@ const createBaseLayoutComponent = normalizedTheme =>
 
 /** 创建某个主题的页面布局组件。 */
 const createPageLayoutComponent = (themeName, layoutName) =>
+  buildThemeLayout(themeName, {
+    layoutName,
+    loading: getLayoutLoading(layoutName),
+    empty: EmptyPageLayout,
+    fallbackThemeName: getFallbackThemeName(themeName)
+  }) ||
   dynamic(() => resolveThemeLayout(themeName, layoutName, EmptyPageLayout), {
     ssr: true,
     loading: getLayoutLoading(layoutName)
