@@ -588,6 +588,15 @@ export const Style = () => {
         }
       }
 
+      /* 窄屏时底部为悬浮控件（FloatingControls 胶囊）预留安全区：
+         文章结尾与最后一屏内容不再被浮层压住，同时计入 iOS 安全区。
+         悬浮控件在滚动中途仍会浮于内容之上，这一点记录为待改进项。 */
+      @media (max-width: 1023px) {
+        #notion-article {
+          padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+        }
+      }
+
       /* ============================================
          图片替代文本 / 失效图片兜底
          NotionPage 挂载后：无 caption 的图改为空 alt；
