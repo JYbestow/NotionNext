@@ -1,5 +1,6 @@
 import { siteConfig } from '@/lib/config'
 import { compressImage, mapImgUrl } from '@/lib/db/notion/mapImage'
+import NotionCollectionUrlProperty from '@/components/NotionCollectionUrlProperty'
 import NotionEmbed from '@/components/NotionEmbed'
 import NotionLink from '@/components/NotionLink'
 import { isBrowser, loadExternalResource } from '@/lib/utils'
@@ -292,8 +293,12 @@ const NotionPage = ({ post, className }) => {
       id='notion-article'
       className={`mx-auto overflow-hidden ${className || ''}`}>
       {/* 友链画册：让整张卡片成为指向条目 URL 属性的主链接（react-notion-x 的
-          isLinkCollectionToUrlProperty）。开启后卡片内可见的 URL 属性会被降级成
-          非 <a> 元素，因此不会出现 <a> 嵌套；没有 URL 属性的卡片仍走原来的页面路由。 */}
+          isLinkCollectionToUrlProperty）。注意：库只会把卡片内的 children 链接降级成
+          form，卡片内 URL 属性仍会输出 <a class="notion-link">，与外层整卡 <a> 形成
+          非法嵌套（浏览器解析时会提前闭合外层 <a>，水合因此失败）。
+          所以这里再注入 components.propertyUrlValue，在渲染期把卡片内的 URL 属性
+          渲染成纯文本 <span>：服务端与客户端结构一致，整卡链接与卡片文案都不变。
+          见 components/NotionCollectionUrlProperty.js。 */}
       <NotionRenderer
         recordMap={post?.blockMap}
         mapPageUrl={mapPageUrl}
@@ -308,7 +313,8 @@ const NotionPage = ({ post, className }) => {
           Modal,
           Pdf,
           Quote: NotionQuote,
-          Tweet
+          Tweet,
+          propertyUrlValue: NotionCollectionUrlProperty
         }}
       />
 
