@@ -8,9 +8,9 @@ import '@/styles/notion.css' //  重写部分notion样式
 
 import useAdjustStyle from '@/hooks/useAdjustStyle'
 import { GlobalContextProvider } from '@/lib/global'
-import { getBaseLayoutByTheme } from '@/themes/theme'
+import { getBaseLayoutByTheme, useResolvedTheme } from '@/themes/theme'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect } from 'react'
 import { getQueryParam } from '../lib/utils'
 import ErrorHandler from '@/lib/utils/errorHandler'
 
@@ -46,9 +46,9 @@ const MyApp = ({ Component, pageProps }) => {
   const queryTheme = getQueryParam(route.asPath, 'theme')
   const notionTheme = pageProps?.NOTION_CONFIG?.THEME
   const configTheme = BLOG.THEME
-  const theme = useMemo(() => {
-    return queryTheme || notionTheme || configTheme
-  }, [queryTheme, notionTheme, configTheme])
+  // 水合安全：服务端与水合期使用配置主题（= 服务端 HTML 实际渲染的主题），
+  // ?theme= 预览在水合完成后的 effect 里生效，避免 #418/#423。详见 useResolvedTheme。
+  const theme = useResolvedTheme(notionTheme || configTheme)
 
   useEffect(() => {
     const source = queryTheme
@@ -65,7 +65,8 @@ const MyApp = ({ Component, pageProps }) => {
           notionTheme: notionTheme || null,
           queryTheme: queryTheme || null,
           finalTheme: theme,
-          source
+          source,
+          hydrationSafe: true
         },
         null,
         2

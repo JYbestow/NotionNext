@@ -2,6 +2,7 @@ import BLOG, { LAYOUT_MAPPINGS } from '@/blog.config'
 import getConfig from 'next/config'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import { getQueryParam, getQueryVariable, isBrowser } from '../lib/utils'
 import { buildThemeLayout, getThemeExport } from './themeLayouts'
 
@@ -170,14 +171,52 @@ export const getThemeConfig = async themeQuery => {
 }
 
 /**
- * 获取当前主题（query 主题优先，且做合法性校验）
+ * 解析当前需要渲染的主题（**水合安全**）。
+ *
+ * 为什么不能在渲染期直接读 ?theme=（本轮修复的核心）：
+ * 站点页面使用 getStaticProps + revalidate（ISR），预渲染 HTML 只与“路径”绑定，
+ * 查询串不参与渲染。实测线上 /、/?theme=hexo、/?theme=medium 三份 HTML 字节完全相同
+ * （143193B，均为配置主题的 Endspace 布局，animate-pulse=0）。
+ * 因此服务端（与 CDN 缓存）永远输出【配置主题】的布局；若客户端首次渲染就直接采用
+ * ?theme=hexo，则与服务端 HTML 不一致 —— 即 #418×4 + #423×1 的根因。
+ *
+ * 另外，非默认主题的布局组件此前是在“渲染期间”才由 createBaseLayoutComponent /
+ * createPageLayoutComponent 创建 dynamic()，不在 preloadReady() 的初始集合里，于是首次
+ * 客户端渲染只能输出 LayoutLoading 占位（dev 栈：at LayoutLoading → at GLayout）。
+ *
+ * 处理方式：
+ *  - 服务端渲染与水合期一律返回【配置主题】（与 HTML 一致，布局组件全部命中模块作用域缓存）；
+ *  - ?theme= 预览在水合完成后的 effect 中生效，切换前先 registerLayoutsForTheme(主题)，
+ *    让预览主题的 loadable 提前就绪；因为此时水合已经结束，这些 loadable 不会进入
+ *    preloadAll() / preloadReady() 的作用范围 —— 正常访问不会多加载任何主题 chunk。
+ *
+ * @param {string} presetTheme 页面/Notion 配置里的主题（即服务端实际使用的那个）
+ * @returns {string} 已通过 THEMES 校验的主题名
  */
-const getCurrentTheme = (router, fallbackTheme) => {
-  const queryTheme = getQueryParam(router?.asPath, 'theme')
-  if (queryTheme) {
-    return normalizeThemeName(queryTheme)
-  }
-  return normalizeThemeName(fallbackTheme || BLOG.THEME)
+export const useResolvedTheme = presetTheme => {
+  const router = useRouter()
+  const configuredTheme = normalizeThemeName(presetTheme || BLOG.THEME)
+  const [previewTheme, setPreviewTheme] = useState(null)
+
+  useEffect(() => {
+    const queryTheme = getQueryParam(router?.asPath, 'theme')
+    const normalizedQueryTheme = queryTheme
+      ? normalizeThemeName(queryTheme)
+      : null
+
+    if (!normalizedQueryTheme || normalizedQueryTheme === configuredTheme) {
+      setPreviewTheme(current => (current === null ? current : null))
+      return
+    }
+
+    // 水合已经结束，这里注册不会扩大 SSR/水合的预加载范围
+    registerLayoutsForTheme(normalizedQueryTheme)
+    setPreviewTheme(current =>
+      current === normalizedQueryTheme ? current : normalizedQueryTheme
+    )
+  }, [router?.asPath, configuredTheme])
+
+  return previewTheme || configuredTheme
 }
 
 /**
@@ -285,8 +324,9 @@ export const DynamicLayout = props => {
  * @returns
  */
 export const useLayoutByTheme = ({ layoutName, theme }) => {
-  const router = useRouter()
-  const themeQuery = getCurrentTheme(router, theme)
+  // 与 _app.js 的 GLayout 共用同一套解析规则：服务端与水合期固定为配置主题，
+  // ?theme= 预览在水合后生效 —— 保证基础布局与页面布局始终是同一个主题。
+  const themeQuery = useResolvedTheme(theme)
   const cacheKey = `${themeQuery}:${layoutName}`
 
   if (layoutByThemeCache.has(cacheKey)) {
