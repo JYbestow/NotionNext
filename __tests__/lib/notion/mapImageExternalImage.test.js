@@ -2,7 +2,12 @@
  * @jest-environment node
  */
 
-import { compressImage, mapImgUrl } from '@/lib/db/notion/mapImage'
+import {
+  compressImage,
+  mapImgUrl,
+  isKnownDeadImageUrl,
+  normalizeDeadImageUrl
+} from '@/lib/db/notion/mapImage'
 import { siteConfig } from '@/lib/config'
 import BLOG from '@/blog.config'
 
@@ -281,6 +286,100 @@ describe('mapImgUrl 外链图片', () => {
 
         expect(mapImgUrl(image, imageBlock('builtin-image'))).toBe(image)
       }
+    )
+  })
+})
+
+describe('失效随机图源（source.unsplash.com）的确定性规范化', () => {
+  // 与 mapImage 内部默认回退保持一致：项目自带中性底板
+  const fallback = BLOG.HOME_BANNER_IMAGE || '/bg_image.jpg'
+
+  it('直链随机图（含查询参数）回退到项目中性底板', () => {
+    expect(
+      normalizeDeadImageUrl(
+        'https://source.unsplash.com/random/720x480/?encryption'
+      )
+    ).toBe(fallback)
+  })
+
+  it.each([
+    'https://source.unsplash.com/random',
+    'https://source.unsplash.com/random/1600x900/?nature,water',
+    'https://source.unsplash.com/featured/?code&sig=1#frag',
+    'http://source.unsplash.com/random/'
+  ])('不同查询参数 / 形态同样回退：%s', url => {
+    expect(isKnownDeadImageUrl(url)).toBe(true)
+    expect(normalizeDeadImageUrl(url)).toBe(fallback)
+  })
+
+  it('Notion 图床代理形态（原地址被编码进 path）也回退', () => {
+    const proxied = `${BLOG.NOTION_HOST}/image/${encodeURIComponent(
+      'https://source.unsplash.com/random/720x480/?encryption'
+    )}?table=block&id=abc&t=abc`
+
+    expect(isKnownDeadImageUrl(proxied)).toBe(true)
+    expect(normalizeDeadImageUrl(proxied)).toBe(fallback)
+  })
+
+  it('Notion CDN ext 代理形态也回退', () => {
+    const cdn =
+      'https://img.notionusercontent.com/ext/https://source.unsplash.com/random/720x480/?encryption/size/?mtd=so'
+
+    expect(isKnownDeadImageUrl(cdn)).toBe(true)
+    expect(normalizeDeadImageUrl(cdn)).toBe(fallback)
+  })
+
+  it('正常 Unsplash 图床 images.unsplash.com 绝不被误处理', () => {
+    const ok =
+      'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200'
+
+    expect(isKnownDeadImageUrl(ok)).toBe(false)
+    expect(normalizeDeadImageUrl(ok)).toBe(ok)
+  })
+
+  it('该域名只出现在 query 里时不算失效图源', () => {
+    const ok =
+      'https://images.unsplash.com/photo-1?ref=https://source.unsplash.com/random'
+
+    expect(isKnownDeadImageUrl(ok)).toBe(false)
+    expect(normalizeDeadImageUrl(ok)).toBe(ok)
+  })
+
+  it('相对路径与站点内路径原样保留', () => {
+    ;['/bg_image.jpg', '/images/cover.png', 'images/cover.png'].forEach(p => {
+      expect(isKnownDeadImageUrl(p)).toBe(false)
+      expect(normalizeDeadImageUrl(p)).toBe(p)
+    })
+  })
+
+  it('空值不做任何补图', () => {
+    expect(normalizeDeadImageUrl('')).toBe('')
+    expect(normalizeDeadImageUrl(null)).toBe('')
+    expect(normalizeDeadImageUrl(undefined)).toBe('')
+    expect(isKnownDeadImageUrl('')).toBe(false)
+    expect(isKnownDeadImageUrl(null)).toBe(false)
+    expect(isKnownDeadImageUrl(undefined)).toBe(false)
+  })
+
+  it('mapImgUrl 对失效直链直接给底板，不再生成代理请求', () => {
+    const ret = mapImgUrl(
+      'https://source.unsplash.com/random/720x480/?encryption',
+      imageBlock('dead-cover'),
+      'block',
+      false
+    )
+
+    expect(ret).toBe(fallback)
+    expect(ret).not.toContain('/image/')
+  })
+
+  it('mapImgUrl 对已落盘的旧代理地址同样回退（旧缓存场景）', () => {
+    const proxied = `${BLOG.NOTION_HOST}/image/${encodeURIComponent(
+      'https://source.unsplash.com/random/720x480/?encryption'
+    )}?table=block&id=dead-cover`
+
+    expect(mapImgUrl(proxied, imageBlock('dead-cover'), 'block', false)).toBe(
+      fallback
     )
   })
 })

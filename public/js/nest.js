@@ -60,7 +60,10 @@ function createNest() {
       m(o)
   }
   var i = document.createElement('canvas')
-  i.id = id
+  // 变量名修正：常量在第 8 行定义为 idNest（'__nest'）。
+  // 原先写作 `i.id = id`，id 未定义会抛 ReferenceError，
+  // 导致画布尚未挂载就中断，整个粒子效果无法初始化。
+  i.id = idNest
   var a = (function () {
       const t = e
       return {
