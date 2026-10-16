@@ -167,4 +167,52 @@ describe('convertInnerUrl', () => {
       '/links'
     )
   })
+
+  it('keeps target=_blank on external links (regression: 优先级缺陷曾把外链一律改成 _self)', () => {
+    window.history.replaceState({}, '', 'http://localhost/links')
+    document.body.innerHTML = `
+      <div id="notion-article">
+        <a class="notion-collection-card" href="https://jzl-66666a.github.io/" target="_blank" rel="noopener noreferrer">友链卡片</a>
+      </div>
+    `
+
+    convertInnerUrl({ allPages: [], lang: undefined })
+
+    const card = document.querySelector('a.notion-collection-card')
+    expect(card).toHaveAttribute('target', '_blank')
+    expect(card).toHaveAttribute('href', 'https://jzl-66666a.github.io/')
+    expect(card).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('keeps target=_blank on same-origin links to other pages', () => {
+    window.history.replaceState({}, '', 'http://localhost/links')
+    document.body.innerHTML = `
+      <div id="notion-article">
+        <a class="notion-link" href="http://localhost/en/links" target="_blank">语言变体</a>
+      </div>
+    `
+
+    convertInnerUrl({ allPages: [], lang: undefined })
+
+    expect(document.querySelector('a.notion-link')).toHaveAttribute(
+      'target',
+      '_blank'
+    )
+  })
+
+  it('still opens links pointing at the current page in the current window', () => {
+    window.history.replaceState({}, '', 'http://localhost/links')
+    document.body.innerHTML = `
+      <div id="notion-article">
+        <a class="notion-link" href="http://localhost/links" target="_blank">当前页</a>
+        <a class="notion-link" href="http://localhost/links#section" target="_blank">当前页锚点</a>
+      </div>
+    `
+
+    convertInnerUrl({ allPages: [], lang: undefined })
+
+    const links = document.querySelectorAll('a.notion-link')
+    expect(links[0]).toHaveAttribute('target', '_self')
+    expect(links[1]).toHaveAttribute('target', '_self')
+  })
 })
